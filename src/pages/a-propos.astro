@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="À propos" description="L'histoire de Pixtil — du tissage industriel jacquard au design génératif papier.">
+  <section class="about-hero">
+    <div class="container">
+      <h1>À propos</h1>
+    </div>
+  </section>
+
+  <section class="about-content">
+    <div class="container">
+      <div class="about-text">
+        <h2>Du métier jacquard au papier</h2>
+        <p>
+          Pixtil est né d'un parcours atypique — à la croisée du code génératif,
+          de l'artisanat textile et des arts plastiques.
+        </p>
+        <p>
+          Expérience de production pièce unique sur métier jacquard industriel,
+          sérigraphie à motifs génératifs, céramique —
+          chaque discipline nourrit une pratique singulière où l'algorithme
+          devient geste et matière.
+        </p>
+        <p>
+          Les outils Pixtil rendent ce savoir-faire accessible.
+          Chaque visiteur peut générer un objet papier unique,
+          le télécharger et le fabriquer de ses mains.
+          Le code fait le motif. Vous faites l'objet.
+        </p>
+
+        <h2>Compétences</h2>
+        <ul>
+          <li><strong>Design génératif</strong> — Processing, p5.js, openFrameworks</li>
+          <li><strong>Tissage textile</strong> — métier jacquard industriel, production pièce unique</li>
+          <li><strong>Sérigraphie</strong> — objets sérigraphiés à motifs génératifs</li>
+          <li><strong>Céramique</strong> — pratique personnelle</li>
+        </ul>
+
+        <h2>Contact</h2>
+        <p>
+          Pour toute question, proposition d'atelier ou commande de pièce originale :
+          <a href="mailto:contact@pixtil.fr">contact@pixtil.fr</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-hero {
+    padding: 4rem 0 2rem;
+    text-align: center;
+  }
+
+  .about-hero h1 {
+    font-size: 2.4rem;
+  }
+
+  .about-content {
+    padding: 2rem 0 4rem;
+  }
+
+  .about-text {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .about-text h2 {
+    font-size: 1.4rem;
+    margin: 2.5rem 0 1rem;
+    color: var(--color-accent-dark);
+  }
+
+  .about-text h2:first-child {
+    margin-top: 0;
+  }
+
+  .about-text p {
+    margin-bottom: 1rem;
+    color: var(--color-text);
+    line-height: 1.7;
+  }
+
+  .about-text ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .about-text li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+    line-height: 1.5;
+  }
+
+  .about-text li:last-child {
+    border-bottom: none;
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Galerie" description="Pièces originales — tissage papier, peinture et feuille d'or. Chaque création est unique.">
+  <section class="gallery-hero">
+    <div class="container">
+      <h1>Galerie</h1>
+      <p>Pièces originales — tissage papier, peinture et feuille d'or.<br />Chaque création est unique.</p>
+    </div>
+  </section>
+
+  <section class="gallery-content">
+    <div class="container">
+      <p class="coming-soon">Les premières pièces originales seront bientôt disponibles.</p>
+      <p class="coming-soon-sub">
+        Chaque oeuvre est réalisée à la main : tissage papier à motif génératif,
+        rehaussé de peinture et de feuille d'or.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .gallery-hero {
+    padding: 4rem 0 2rem;
+    text-align: center;
+  }
+
+  .gallery-hero h1 {
+    font-size: 2.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .gallery-hero p {
+    color: var(--color-text-light);
+    font-size: 1.1rem;
+  }
+
+  .gallery-content {
+    padding: 3rem 0;
+    text-align: center;
+  }
+
+  .coming-soon {
+    font-size: 1.2rem;
+    color: var(--color-accent-dark);
+    font-family: var(--font-heading);
+    margin-bottom: 1rem;
+  }
+
+  .coming-soon-sub {
+    color: var(--color-text-light);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+</style>

@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TissageApp from '../../components/TissageApp.svelte';
+---
+
+<BaseLayout title="Tissage papier" description="Générez un patron de tissage papier unique. Choisissez vos couleurs, votre motif, exportez en PDF ou SVG.">
+  <section class="tool-hero">
+    <div class="container">
+      <h1>Tissage papier</h1>
+      <p>
+        Générez un patron de tissage unique. Jouez avec les paramètres,
+        puis exportez votre patron en PDF ou SVG pour le réaliser.
+      </p>
+    </div>
+  </section>
+
+  <section class="tool-app">
+    <div class="container">
+      <TissageApp client:load />
+    </div>
+  </section>
+
+  <section class="tool-guide">
+    <div class="container">
+      <h2>Comment réaliser votre tissage</h2>
+      <ol>
+        <li><strong>Générez</strong> votre patron en ajustant les paramètres ci-dessus</li>
+        <li><strong>Exportez</strong> en PDF (pour imprimer) ou SVG (pour découpe machine)</li>
+        <li><strong>Imprimez</strong> le patron sur du papier de qualité (160g minimum recommandé)</li>
+        <li><strong>Découpez</strong> les bandes en suivant les repères de coupe</li>
+        <li><strong>Tissez</strong> en alternant dessus/dessous selon le motif</li>
+        <li><strong>Fixez</strong> avec un point de colle aux extrémités</li>
+      </ol>
+
+      <h3>Matériel recommandé</h3>
+      <ul>
+        <li>Papier cartonné 160-200g (Canson, Clairefontaine)</li>
+        <li>Cutter et règle métallique</li>
+        <li>Tapis de découpe</li>
+        <li>Colle en bâton ou colle blanche</li>
+        <li>Optionnel : feuille d'or, peinture acrylique pour finitions</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tool-hero {
+    padding: 3rem 0 2rem;
+    text-align: center;
+  }
+
+  .tool-hero h1 {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tool-hero p {
+    color: var(--color-text-light);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .tool-app {
+    padding: 2rem 0;
+  }
+
+  .tool-guide {
+    padding: 3rem 0;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .tool-guide h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-accent-dark);
+  }
+
+  .tool-guide h3 {
+    font-size: 1.1rem;
+    margin: 2rem 0 1rem;
+    color: var(--color-accent-dark);
+  }
+
+  .tool-guide ol,
+  .tool-guide ul {
+    padding-left: 1.5rem;
+    line-height: 1.8;
+    color: var(--color-text);
+  }
+
+  .tool-guide li {
+    margin-bottom: 0.5rem;
+  }
+</style>

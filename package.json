@@ -1,0 +1,19 @@
+{
+  "name": "pixtil",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Plateforme de design génératif papier — pixtil.fr",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^7.2.5",
+    "astro": "^5.17.1",
+    "jspdf": "^4.1.0",
+    "p5": "^2.2.0",
+    "svelte": "^5.50.0",
+    "svg2pdf.js": "^2.7.0"
+  }
+}

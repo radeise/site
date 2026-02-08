@@ -1,0 +1,203 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Accueil">
+  <section class="hero">
+    <div class="container">
+      <h1>Créez des objets papier uniques<br />grâce au design génératif</h1>
+      <p class="hero-sub">
+        Tissage, mobiles, affiches — chaque création est unique.
+        Générez votre patron, téléchargez-le, fabriquez-le.
+      </p>
+      <div class="hero-actions">
+        <a href="/outils/tissage" class="btn btn-primary">Essayer le tissage papier</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools-preview">
+    <div class="container">
+      <h2>Les outils</h2>
+      <div class="tools-grid">
+        <a href="/outils/tissage" class="tool-card">
+          <div class="tool-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="8" y1="12" x2="40" y2="12" />
+              <line x1="8" y1="20" x2="40" y2="20" />
+              <line x1="8" y1="28" x2="40" y2="28" />
+              <line x1="8" y1="36" x2="40" y2="36" />
+              <line x1="14" y1="8" x2="14" y2="40" />
+              <line x1="22" y1="8" x2="22" y2="40" />
+              <line x1="30" y1="8" x2="30" y2="40" />
+              <line x1="38" y1="8" x2="38" y2="40" />
+            </svg>
+          </div>
+          <h3>Tissage papier</h3>
+          <p>Générez un patron de tissage unique avec guide d'assemblage</p>
+          <span class="tool-status available">Disponible</span>
+        </a>
+
+        <div class="tool-card disabled">
+          <div class="tool-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="24" y1="4" x2="24" y2="16" />
+              <line x1="12" y1="16" x2="36" y2="16" />
+              <line x1="12" y1="16" x2="12" y2="28" />
+              <line x1="36" y1="16" x2="36" y2="28" />
+              <circle cx="12" cy="32" r="4" />
+              <circle cx="36" cy="32" r="4" />
+            </svg>
+          </div>
+          <h3>Mobile</h3>
+          <p>Patron avec calcul d'équilibre et instructions de montage</p>
+          <span class="tool-status soon">Bientôt</span>
+        </div>
+
+        <div class="tool-card disabled">
+          <div class="tool-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="8" y="6" width="32" height="36" rx="2" />
+              <circle cx="24" cy="22" r="8" />
+              <line x1="14" y1="36" x2="34" y2="36" />
+            </svg>
+          </div>
+          <h3>Affiche générative</h3>
+          <p>Impression directe d'une affiche unique</p>
+          <span class="tool-status soon">Bientôt</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="manifesto">
+    <div class="container">
+      <h2>Algorithme + Artisanat + Geste humain</h2>
+      <p>
+        Pixtil est né de la rencontre entre le code génératif et les arts du papier.
+        Chaque outil transforme un algorithme en objet tangible —
+        un motif que vous imprimez, découpez et assemblez de vos mains.
+      </p>
+      <p>
+        Le résultat est toujours unique. Le processus est toujours le vôtre.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 6rem 0 4rem;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    color: var(--color-dark);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--color-text-light);
+    max-width: 540px;
+    margin: 0 auto 2rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .tools-preview {
+    padding: 4rem 0;
+  }
+
+  .tools-preview h2 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .tool-card {
+    display: block;
+    padding: 2rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.2s;
+    color: var(--color-text);
+  }
+
+  .tool-card:not(.disabled):hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .tool-card.disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .tool-icon {
+    margin-bottom: 1rem;
+    color: var(--color-accent);
+  }
+
+  .tool-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .tool-card p {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+  }
+
+  .tool-status {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+  }
+
+  .tool-status.available {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .tool-status.soon {
+    background: #f5f5f5;
+    color: #999;
+  }
+
+  .manifesto {
+    padding: 4rem 0;
+    text-align: center;
+  }
+
+  .manifesto h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-accent-dark);
+  }
+
+  .manifesto p {
+    max-width: 600px;
+    margin: 0 auto 1rem;
+    color: var(--color-text-light);
+    font-size: 1.05rem;
+  }
+</style>
