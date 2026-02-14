@@ -3,13 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TissageApp from '../../components/TissageApp.svelte';
 ---
 
-<BaseLayout title="Tissage papier" description="Générez un patron de tissage papier unique. Choisissez vos couleurs, votre motif, exportez en PDF ou SVG.">
+<BaseLayout title="Tissage papier — Paysage" description="Générateur de patrons de tissage papier par bruit de Perlin. Exportez vos patrons PDF prêts à imprimer et fabriquer.">
   <section class="tool-hero">
     <div class="container">
       <h1>Tissage papier</h1>
       <p>
-        Générez un patron de tissage unique. Jouez avec les paramètres,
-        puis exportez votre patron en PDF ou SVG pour le réaliser.
+        Chaque motif est généré par un algorithme de bruit de Perlin,
+        combiné à des armures textiles classiques. Le résultat simule
+        un tissage chaîne/trame — exportez les patrons PDF pour le fabriquer.
       </p>
     </div>
   </section>
@@ -21,24 +22,67 @@ import TissageApp from '../../components/TissageApp.svelte';
   </section>
 
   <section class="tool-guide">
-    <div class="container">
+    <div class="container guide-content">
       <h2>Comment réaliser votre tissage</h2>
-      <ol>
-        <li><strong>Générez</strong> votre patron en ajustant les paramètres ci-dessus</li>
-        <li><strong>Exportez</strong> en PDF (pour imprimer) ou SVG (pour découpe machine)</li>
-        <li><strong>Imprimez</strong> le patron sur du papier de qualité (160g minimum recommandé)</li>
-        <li><strong>Découpez</strong> les bandes en suivant les repères de coupe</li>
-        <li><strong>Tissez</strong> en alternant dessus/dessous selon le motif</li>
-        <li><strong>Fixez</strong> avec un point de colle aux extrémités</li>
-      </ol>
+
+      <div class="guide-steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>Générez</strong> votre motif en cliquant sur l'aperçu ou en ajustant les paramètres (format, épaisseur des fils, ID)
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Exportez</strong> les PDF — l'export génère 4 fichiers :
+            <ul>
+              <li><em>ChaîneInverse</em> — patron miroir des fils de chaîne (à retourner après découpe)</li>
+              <li><em>Trame</em> — guide de peinture des bandes de trame avec repères de découpe</li>
+              <li><em>Preview</em> — aperçu du tissage final</li>
+              <li><em>Info</em> — métadonnées (dimensions, ID)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div>
+            <strong>Imprimez</strong> les patrons sur papier 160-200g (Canson, Clairefontaine)
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">4</span>
+          <div>
+            <strong>Découpez</strong> les bandes de chaîne et de trame en suivant les repères
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">5</span>
+          <div>
+            <strong>Tissez</strong> en entrecroisant les bandes selon le motif
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">6</span>
+          <div>
+            <strong>Finitions</strong> — fixez avec de la colle, ajoutez optionnellement de la feuille d'or ou de la peinture acrylique
+          </div>
+        </div>
+      </div>
 
       <h3>Matériel recommandé</h3>
-      <ul>
-        <li>Papier cartonné 160-200g (Canson, Clairefontaine)</li>
+      <ul class="material-list">
+        <li>Papier cartonné 160-200g</li>
         <li>Cutter et règle métallique</li>
         <li>Tapis de découpe</li>
         <li>Colle en bâton ou colle blanche</li>
-        <li>Optionnel : feuille d'or, peinture acrylique pour finitions</li>
+        <li>Optionnel : feuille d'or, peinture acrylique</li>
+      </ul>
+
+      <h3>Raccourcis</h3>
+      <ul class="material-list">
+        <li><kbd>s</kbd> — exporter les 4 fichiers PDF</li>
+        <li><kbd>clic</kbd> sur l'aperçu — générer un nouveau motif</li>
       </ul>
     </div>
   </section>
@@ -57,8 +101,9 @@ import TissageApp from '../../components/TissageApp.svelte';
 
   .tool-hero p {
     color: var(--color-text-light);
-    max-width: 520px;
+    max-width: 560px;
     margin: 0 auto;
+    line-height: 1.6;
   }
 
   .tool-app {
@@ -67,30 +112,78 @@ import TissageApp from '../../components/TissageApp.svelte';
 
   .tool-guide {
     padding: 3rem 0;
+  }
+
+  .guide-content {
     max-width: 640px;
     margin: 0 auto;
   }
 
-  .tool-guide h2 {
+  .guide-content h2 {
     font-size: 1.4rem;
     margin-bottom: 1.5rem;
     color: var(--color-accent-dark);
   }
 
-  .tool-guide h3 {
+  .guide-content h3 {
     font-size: 1.1rem;
     margin: 2rem 0 1rem;
     color: var(--color-accent-dark);
   }
 
-  .tool-guide ol,
-  .tool-guide ul {
-    padding-left: 1.5rem;
-    line-height: 1.8;
-    color: var(--color-text);
+  .guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .tool-guide li {
-    margin-bottom: 0.5rem;
+  .step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-accent, #c4956a);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.1rem;
+  }
+
+  .step ul {
+    margin-top: 0.5rem;
+    padding-left: 1.2rem;
+  }
+
+  .step li {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  .material-list {
+    padding-left: 1.5rem;
+    line-height: 1.8;
+  }
+
+  .material-list li {
+    margin-bottom: 0.3rem;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #f5f5f5;
+    font-family: monospace;
+    font-size: 0.85rem;
   }
 </style>
