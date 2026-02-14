@@ -164,12 +164,27 @@
   }
 
   // --- Export PDF ---
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async function exportAllPDF() {
     if (!tissage) return;
 
     const { jsPDF } = await import('jspdf');
     const t = tissage;
-    const ratio = RATIO; // 28.35 pt/cm at 72dpi — matches jsPDF points
+    const ratio = RATIO;
 
     // --- 1. Preview.pdf ---
     const previewPdf = new jsPDF({
@@ -194,7 +209,10 @@
       }
     }
 
-    previewPdf.save(`Preview-${t.id}.pdf`);
+    const previewBlob = previewPdf.output('blob');
+    downloadBlob(previewBlob, `Preview-${t.id}.pdf`);
+
+    await delay(500);
 
     // --- 2. ChaîneInverse.pdf (miroir horizontal) ---
     const chainePdf = new jsPDF({
@@ -205,7 +223,6 @@
 
     const mirrorBase = t.warpQuantity * t.warpThickness;
 
-    // Traits de trame inversés : cellules NON noires (isBlack === false)
     chainePdf.setDrawColor(0, 0, 0);
     chainePdf.setLineWidth(0.3);
 
@@ -225,10 +242,9 @@
       }
     }
 
-    // Lignes de chaîne inversées
     chainePdf.setDrawColor(120, 120, 120);
     chainePdf.setLineWidth(0.3);
-    const ext = 1; // 1 cm extension
+    const ext = 1;
 
     for (let x = 0; x <= t.warpQuantity; x++) {
       const mx = mirrorBase - x * t.warpThickness;
@@ -241,7 +257,6 @@
       );
     }
 
-    // Numéros de rangée (côté gauche en miroir = côté droit original)
     chainePdf.setFontSize(6);
     chainePdf.setTextColor(120, 120, 120);
     const espacement = t.weftThickness + t.weftSpace;
@@ -253,12 +268,10 @@
       );
     }
 
-    // Cadre
     chainePdf.setDrawColor(120, 120, 120);
     chainePdf.setLineWidth(0.5);
     chainePdf.rect(0, 0, t.format.cadre.x * ratio, t.format.cadre.y * ratio);
 
-    // Timecode
     chainePdf.setFontSize(6);
     chainePdf.setTextColor(120);
     chainePdf.text(
@@ -267,7 +280,10 @@
       (t.ancrage.y + t.hauteurTissage + ext + 0.5) * ratio
     );
 
-    chainePdf.save(`ChaineInverse-${t.id}.pdf`);
+    const chaineBlob = chainePdf.output('blob');
+    downloadBlob(chaineBlob, `ChaineInverse-${t.id}.pdf`);
+
+    await delay(500);
 
     // --- 3. Trame.pdf ---
     const trameH = t.weftQuantity * t.weftThickness * 2 + t.ancrage.y;
@@ -277,12 +293,11 @@
       format: [t.format.cadre.x * ratio, trameH * ratio],
     });
 
-    const margin = 0.1; // marge autour des flottés en cm
+    const margin = 0.1;
 
     for (let y = 0; y < t.weftQuantity; y++) {
       const rowY = t.ancrage.y + y * t.weftThickness * 2;
 
-      // Détection des flottés et rendu
       let floatStart = -1;
 
       for (let x = 0; x < t.warpQuantity; x++) {
@@ -293,7 +308,6 @@
           const next = x + 1 < t.warpQuantity ? t.grid[y][x + 1].isBlack : false;
 
           if (!next) {
-            // Fin d'un groupe (flotté ou cellule isolée)
             const startX = floatStart * t.warpThickness;
             const endX = (x + 1) * t.warpThickness;
             const isFloat = floatStart !== x;
@@ -323,7 +337,6 @@
         }
       }
 
-      // Repères de découpe
       tramePdf.setDrawColor(120);
       tramePdf.setLineWidth(0.3);
 
@@ -332,7 +345,6 @@
       const bandTop = rowY * ratio;
       const bandBot = (rowY + t.weftThickness) * ratio;
 
-      // Lignes horizontales
       tramePdf.line(repLeft, bandTop, repLeft + 0.5 * ratio, bandTop);
       tramePdf.line(repLeft, bandBot, repLeft + 0.5 * ratio, bandBot);
       tramePdf.line(repLeft, bandTop, repLeft, bandBot);
@@ -341,22 +353,19 @@
       tramePdf.line(repRight, bandBot, repRight + 0.5 * ratio, bandBot);
       tramePdf.line(repRight + 0.5 * ratio, bandTop, repRight + 0.5 * ratio, bandBot);
 
-      // Numéro de rangée
       tramePdf.setFontSize(5);
       tramePdf.setTextColor(120);
       tramePdf.text(String(y), repRight + 0.7 * ratio, (rowY + t.weftThickness * 0.8) * ratio);
     }
 
-    tramePdf.save(`Trame-${t.id}.pdf`);
+    const trameBlob = tramePdf.output('blob');
+    downloadBlob(trameBlob, `Trame-${t.id}.pdf`);
+
+    await delay(500);
 
     // --- 4. Info.txt ---
     const infoBlob = new Blob([t.getInfoText()], { type: 'text/plain' });
-    const infoUrl = URL.createObjectURL(infoBlob);
-    const infoLink = document.createElement('a');
-    infoLink.href = infoUrl;
-    infoLink.download = `Info-${t.id}.txt`;
-    infoLink.click();
-    URL.revokeObjectURL(infoUrl);
+    downloadBlob(infoBlob, `Info-${t.id}.txt`);
   }
 
   // --- Sauvegarde / Chargement JSON ---
