@@ -468,15 +468,6 @@
     }
   });
 
-  // Réactivité : recalculer quand les paramètres changent
-  $effect(() => {
-    formatKey; warpThickness; weftThickness; weftSpace;
-
-    if (p5Instance && tissage) {
-      buildTissage();
-      redraw();
-    }
-  });
 </script>
 
 <div class="tissage-app">
@@ -494,15 +485,15 @@
       <h3>Paramètres de tissage</h3>
       <label>
         Épaisseur chaîne : {warpThickness.toFixed(2)} cm
-        <input type="range" min="0.1" max="1.0" step="0.05" bind:value={warpThickness} />
+        <input type="range" min="0.1" max="1.0" step="0.05" bind:value={warpThickness} oninput={updateParams} />
       </label>
       <label>
         Épaisseur trame : {weftThickness.toFixed(2)} cm
-        <input type="range" min="0.1" max="1.0" step="0.05" bind:value={weftThickness} />
+        <input type="range" min="0.1" max="1.0" step="0.05" bind:value={weftThickness} oninput={updateParams} />
       </label>
       <label>
         Espace inter-trame : {weftSpace.toFixed(2)} cm
-        <input type="range" min="0.01" max="0.2" step="0.01" bind:value={weftSpace} />
+        <input type="range" min="0.01" max="0.2" step="0.01" bind:value={weftSpace} oninput={updateParams} />
       </label>
     </div>
 
