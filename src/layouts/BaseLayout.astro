@@ -283,29 +283,37 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
       display: block;
     }
 
-    .nav {
+    .footer-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Mobile nav — must be :global because .open is toggled by JS */
+  @media (max-width: 768px) {
+    :global(#nav) {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 105;
-      background: #fff;
+      background: #ffffff;
+      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       gap: 2.5rem;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.35s var(--ease);
+      transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    :global(.nav.open) {
+    :global(#nav.open) {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .nav a {
+    :global(#nav a) {
       font-size: 1.3rem;
       font-family: var(--serif);
       letter-spacing: 0.02em;
@@ -313,12 +321,8 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
       color: var(--text);
     }
 
-    .nav a::after {
+    :global(#nav a::after) {
       display: none;
-    }
-
-    .footer-inner {
-      grid-template-columns: 1fr;
     }
   }
 </style>
