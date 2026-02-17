@@ -34,17 +34,34 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
   <script>
     const burger = document.getElementById('burger');
     const nav = document.getElementById('nav');
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
+    function openNav() {
+      if (!nav) return;
+      nav.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:105;background:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;opacity:1;pointer-events:auto;';
+      burger?.classList.add('open');
+      burger?.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeNav() {
+      if (!nav) return;
+      nav.style.cssText = '';
+      burger?.classList.remove('open');
+      burger?.setAttribute('aria-expanded', 'false');
+    }
+
     burger?.addEventListener('click', () => {
-      const open = nav?.classList.toggle('open');
-      burger.classList.toggle('open', open);
-      burger.setAttribute('aria-expanded', String(open));
+      if (!isMobile()) return;
+      const isOpen = burger.classList.contains('open');
+      isOpen ? closeNav() : openNav();
     });
+
     nav?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        nav.classList.remove('open');
-        burger?.classList.remove('open');
-        burger?.setAttribute('aria-expanded', 'false');
-      });
+      a.addEventListener('click', closeNav);
+    });
+
+    window.addEventListener('resize', () => {
+      if (!isMobile()) closeNav();
     });
   </script>
 
