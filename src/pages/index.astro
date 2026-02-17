@@ -3,201 +3,475 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Accueil">
-  <section class="hero">
-    <div class="container">
-      <h1>Créez des objets papier uniques<br />grâce au design génératif</h1>
-      <p class="hero-sub">
-        Tissage, mobiles, affiches — chaque création est unique.
-        Générez votre patron, téléchargez-le, fabriquez-le.
-      </p>
-      <div class="hero-actions">
-        <a href="/outils/tissage" class="btn btn-primary">Essayer le tissage papier</a>
-      </div>
+  <!-- HERO -->
+  <section class="hero bg-grid">
+    <div class="hero-label">Design génératif & papier — pixtil.fr</div>
+    <h1>Objets papier<br>d'<em>algorithmes</em></h1>
+    <p class="hero-sub">
+      Pixtil crée des outils gratuits de génération d'objets papier uniques.
+      Tissage, mobiles, affiches — chaque motif est unique, prêt à fabriquer.
+    </p>
+    <div class="hero-actions">
+      <a href="/outils/tissage" class="btn-primary-hero">
+        Essayer le tissage
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+    </div>
+    <div class="hero-scroll">
+      <span>Découvrir</span>
+      <div class="scroll-line"></div>
     </div>
   </section>
 
-  <section class="tools-preview">
+  <!-- MARQUEE -->
+  <div class="marquee-wrap bg-grid">
+    <div class="marquee">
+      <span class="marquee-item">Tissage Papier</span>
+      <span class="marquee-item">Design Génératif</span>
+      <span class="marquee-item">Patrons PDF</span>
+      <span class="marquee-item">Pièces Uniques</span>
+      <span class="marquee-item">Feuille d'Or</span>
+      <span class="marquee-item">Open Source</span>
+      <span class="marquee-item">Tissage Papier</span>
+      <span class="marquee-item">Design Génératif</span>
+      <span class="marquee-item">Patrons PDF</span>
+      <span class="marquee-item">Pièces Uniques</span>
+      <span class="marquee-item">Feuille d'Or</span>
+      <span class="marquee-item">Open Source</span>
+    </div>
+  </div>
+
+  <!-- OUTILS -->
+  <section class="tools-section bg-grid">
     <div class="container">
-      <h2>Les outils</h2>
+      <div class="section-header">
+        <h2>Les <em>outils</em></h2>
+        <a href="/outils/tissage" class="section-link">Tous les outils &rarr;</a>
+      </div>
       <div class="tools-grid">
-        <a href="/outils/tissage" class="tool-card">
-          <div class="tool-icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="8" y1="12" x2="40" y2="12" />
-              <line x1="8" y1="20" x2="40" y2="20" />
-              <line x1="8" y1="28" x2="40" y2="28" />
-              <line x1="8" y1="36" x2="40" y2="36" />
-              <line x1="14" y1="8" x2="14" y2="40" />
-              <line x1="22" y1="8" x2="22" y2="40" />
-              <line x1="30" y1="8" x2="30" y2="40" />
-              <line x1="38" y1="8" x2="38" y2="40" />
-            </svg>
+        <a href="/outils/tissage" class="product-card featured">
+          <div class="card-img img-tissage"></div>
+          <div class="card-body card-body-featured">
+            <div class="card-tag">Disponible</div>
+            <div class="card-title">Tissage Papier</div>
+            <div class="card-desc">Patron de tissage généré par bruit de Perlin. Armures textiles classiques, export PDF prêt à imprimer.</div>
           </div>
-          <h3>Tissage papier</h3>
-          <p>Générez un patron de tissage unique avec guide d'assemblage</p>
-          <span class="tool-status available">Disponible</span>
         </a>
 
-        <div class="tool-card disabled">
-          <div class="tool-icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="24" y1="4" x2="24" y2="16" />
-              <line x1="12" y1="16" x2="36" y2="16" />
-              <line x1="12" y1="16" x2="12" y2="28" />
-              <line x1="36" y1="16" x2="36" y2="28" />
-              <circle cx="12" cy="32" r="4" />
-              <circle cx="36" cy="32" r="4" />
-            </svg>
+        <div class="product-card disabled">
+          <div class="card-img img-mobile"></div>
+          <div class="card-body">
+            <div class="card-tag">Bientôt</div>
+            <div class="card-title">Mobile</div>
+            <div class="card-desc">Patron avec calcul d'équilibre et instructions de montage.</div>
           </div>
-          <h3>Mobile</h3>
-          <p>Patron avec calcul d'équilibre et instructions de montage</p>
-          <span class="tool-status soon">Bientôt</span>
         </div>
 
-        <div class="tool-card disabled">
-          <div class="tool-icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="8" y="6" width="32" height="36" rx="2" />
-              <circle cx="24" cy="22" r="8" />
-              <line x1="14" y1="36" x2="34" y2="36" />
-            </svg>
+        <div class="product-card disabled">
+          <div class="card-img img-affiche"></div>
+          <div class="card-body">
+            <div class="card-tag">Bientôt</div>
+            <div class="card-title">Affiche Générative</div>
+            <div class="card-desc">Impression directe d'une affiche unique, motifs algorithmiques.</div>
           </div>
-          <h3>Affiche générative</h3>
-          <p>Impression directe d'une affiche unique</p>
-          <span class="tool-status soon">Bientôt</span>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="manifesto">
-    <div class="container">
-      <h2>Algorithme + Artisanat + Geste humain</h2>
-      <p>
-        Pixtil est né de la rencontre entre le code génératif et les arts du papier.
-        Chaque outil transforme un algorithme en objet tangible —
-        un motif que vous imprimez, découpez et assemblez de vos mains.
-      </p>
-      <p>
-        Le résultat est toujours unique. Le processus est toujours le vôtre.
-      </p>
+  <!-- MANIFESTE -->
+  <section class="manifesto-section bg-hlines">
+    <div class="manifesto-inner container">
+      <div class="manifesto-text">
+        <div class="label">Manifeste</div>
+        <h2>Algorithme,<br>artisanat &<br><em>geste humain</em></h2>
+        <p>
+          Pixtil est né de la rencontre entre le code génératif et les arts du papier.
+          Chaque outil transforme un algorithme en objet tangible — un motif que vous
+          imprimez, découpez et assemblez de vos mains.
+        </p>
+        <p>Le résultat est toujours unique. Le processus est toujours le vôtre.</p>
+        <a href="/a-propos" class="btn">
+          En savoir plus
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+      <div class="manifesto-visual">
+        <div class="mani-tile mt-1"></div>
+        <div class="mani-tile mt-2"></div>
+        <div class="mani-tile mt-3"></div>
+        <div class="mani-tile mt-4"></div>
+      </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
+  /* Hero */
   .hero {
-    padding: 6rem 0 4rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    padding: 8rem 3rem 4rem;
+    position: relative;
+  }
+
+  .hero-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 0.2s forwards;
   }
 
   .hero h1 {
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    color: var(--color-dark);
-    margin-bottom: 1.5rem;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    max-width: 900px;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 0.4s forwards;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--blue);
   }
 
   .hero-sub {
-    font-size: 1.15rem;
-    color: var(--color-text-light);
-    max-width: 540px;
-    margin: 0 auto 2rem;
+    font-size: 1.1rem;
+    color: var(--text-soft);
+    max-width: 480px;
+    margin-top: 2rem;
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 0.6s forwards;
   }
 
   .hero-actions {
+    margin-top: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 0.8s forwards;
+  }
+
+  .btn-primary-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    background: var(--text);
+    color: #fff;
+    border-radius: 3px;
+    transition: all 0.4s var(--ease);
+  }
+
+  .btn-primary-hero:hover {
+    background: var(--blue);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(26, 92, 255, 0.25);
+  }
+
+  .btn-primary-hero svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 3rem;
     display: flex;
-    justify-content: center;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 1s forwards;
   }
 
-  .tools-preview {
-    padding: 4rem 0;
+  .hero-scroll span {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-soft);
   }
 
-  .tools-preview h2 {
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
-    text-align: center;
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: 0;
+    width: 1px;
+    height: 40px;
+    background: var(--red);
+    animation: scrollDown 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollDown {
+    0% { top: -40px; }
+    100% { top: 40px; }
+  }
+
+  /* Marquee */
+  .marquee-wrap {
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .marquee {
+    display: flex;
+    gap: 3rem;
+    animation: marquee 25s linear infinite;
+    width: max-content;
+  }
+
+  .marquee-item {
+    font-family: var(--serif);
+    font-size: 1rem;
+    white-space: nowrap;
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .marquee-item::after {
+    content: '\u25C6';
+    font-size: 0.4rem;
+    color: var(--red);
+  }
+
+  /* Tools Grid */
+  .tools-section {
+    padding-bottom: 6rem;
   }
 
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
   }
 
-  .tool-card {
-    display: block;
-    padding: 2rem;
-    border: 1.5px solid var(--color-border);
-    border-radius: 8px;
-    text-align: center;
-    transition: all 0.2s;
-    color: var(--color-text);
+  .product-card.featured {
+    grid-column: span 2;
+    grid-row: span 2;
   }
 
-  .tool-card:not(.disabled):hover {
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  .product-card.featured .card-img {
+    aspect-ratio: auto;
+    height: 100%;
+    position: absolute;
+    inset: 0;
   }
 
-  .tool-card.disabled {
+  .card-body-featured {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2.5rem;
+    background: linear-gradient(to top, rgba(17, 17, 17, 0.85) 0%, rgba(17, 17, 17, 0) 100%);
+    color: #fff;
+  }
+
+  .card-body-featured .card-tag {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .card-body-featured .card-title {
+    font-size: 2rem;
+    color: #fff;
+  }
+
+  .card-body-featured .card-desc {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .product-card.disabled {
     opacity: 0.5;
     cursor: default;
+    pointer-events: none;
   }
 
-  .tool-icon {
-    margin-bottom: 1rem;
-    color: var(--color-accent);
+  /* Card image textures */
+  .img-tissage {
+    background: linear-gradient(135deg, var(--yellow) 0%, #FF9E2C 35%, var(--red) 70%, #C41A2A 100%);
   }
 
-  .tool-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+  .img-tissage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+    background-size: 12px 12px;
   }
 
-  .tool-card p {
-    font-size: 0.9rem;
-    color: var(--color-text-light);
-    margin-bottom: 1rem;
+  .img-mobile {
+    background: linear-gradient(160deg, #D0DFFF 0%, var(--blue) 100%);
   }
 
-  .tool-status {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+  .img-mobile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 2px, transparent 2px);
+    background-size: 20px 20px;
   }
 
-  .tool-status.available {
-    background: #e8f5e9;
-    color: #2e7d32;
+  .img-affiche {
+    background: linear-gradient(160deg, #FFF8DC, var(--yellow));
   }
 
-  .tool-status.soon {
-    background: #f5f5f5;
-    color: #999;
+  .img-affiche::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.04) 10px, rgba(0, 0, 0, 0.04) 11px);
   }
 
-  .manifesto {
-    padding: 4rem 0;
-    text-align: center;
+  /* Manifeste */
+  .manifesto-section {
+    background-color: var(--bg-warm);
+    padding: 8rem 0;
   }
 
-  .manifesto h2 {
-    font-size: 1.6rem;
+  .manifesto-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .manifesto-text .label {
     margin-bottom: 1.5rem;
-    color: var(--color-accent-dark);
   }
 
-  .manifesto p {
-    max-width: 600px;
-    margin: 0 auto 1rem;
-    color: var(--color-text-light);
-    font-size: 1.05rem;
+  .manifesto-text h2 {
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: 1.5rem;
+  }
+
+  .manifesto-text h2 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .manifesto-text p {
+    color: var(--text-soft);
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 480px;
+    margin-bottom: 1rem;
+  }
+
+  .manifesto-text .btn {
+    margin-top: 1.5rem;
+  }
+
+  .manifesto-visual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  .mani-tile {
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 3/4;
+  }
+
+  .mani-tile:nth-child(2) { transform: translateY(2rem); }
+  .mani-tile:nth-child(4) { transform: translateY(2rem); }
+
+  .mt-1 {
+    background: var(--blue);
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 2px, transparent 2px);
+    background-size: 18px 18px;
+  }
+
+  .mt-2 {
+    background: var(--yellow);
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0, 0, 0, 0.06) 8px, rgba(0, 0, 0, 0.06) 9px);
+  }
+
+  .mt-3 {
+    background: var(--red);
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .mt-4 {
+    background: linear-gradient(160deg, #D8D8CE, #C5C5BA);
+    background-image:
+      repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(0, 0, 0, 0.04) 12px, rgba(0, 0, 0, 0.04) 13px),
+      repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(0, 0, 0, 0.04) 12px, rgba(0, 0, 0, 0.04) 13px);
+  }
+
+  @media (max-width: 1024px) {
+    .tools-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .product-card.featured {
+      grid-column: span 2;
+      grid-row: span 1;
+    }
+
+    .product-card.featured .card-img {
+      position: relative;
+      aspect-ratio: 16/9;
+      height: auto;
+    }
+
+    .manifesto-inner {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 7rem 1.5rem 3rem;
+    }
+
+    .tools-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .product-card.featured {
+      grid-column: span 1;
+    }
+
+    .manifesto-section {
+      padding: 5rem 0;
+    }
+
+    .manifesto-visual {
+      display: none;
+    }
   }
 </style>

@@ -3,55 +3,103 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Galerie" description="Pièces originales — tissage papier, peinture et feuille d'or. Chaque création est unique.">
-  <section class="gallery-hero">
+  <section class="gallery-hero bg-grid">
     <div class="container">
-      <h1>Galerie</h1>
-      <p>Pièces originales — tissage papier, peinture et feuille d'or.<br />Chaque création est unique.</p>
+      <div class="label">Galerie</div>
+      <h1>Pièces <em>originales</em></h1>
+      <p class="gallery-sub">Tissage papier, peinture et feuille d'or.<br>Chaque oeuvre est unique.</p>
     </div>
   </section>
 
-  <section class="gallery-content">
+  <section class="gallery-content bg-dots">
     <div class="container">
-      <p class="coming-soon">Les premières pièces originales seront bientôt disponibles.</p>
-      <p class="coming-soon-sub">
-        Chaque oeuvre est réalisée à la main : tissage papier à motif génératif,
-        rehaussé de peinture et de feuille d'or.
-      </p>
+      <div class="coming-soon-card">
+        <div class="cs-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="8" y="8" width="32" height="32" rx="2" />
+            <line x1="8" y1="16" x2="40" y2="16" />
+            <line x1="8" y1="24" x2="40" y2="24" />
+            <line x1="8" y1="32" x2="40" y2="32" />
+            <line x1="16" y1="8" x2="16" y2="40" />
+            <line x1="24" y1="8" x2="24" y2="40" />
+            <line x1="32" y1="8" x2="32" y2="40" />
+          </svg>
+        </div>
+        <h2>Les premières pièces arrivent bientôt</h2>
+        <p>
+          Chaque oeuvre est réalisée à la main : tissage papier à motif génératif,
+          rehaussé de peinture et de feuille d'or. Les premières créations seront
+          disponibles prochainement.
+        </p>
+        <a href="/outils/tissage" class="btn">
+          Créer votre motif
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
   .gallery-hero {
-    padding: 4rem 0 2rem;
+    padding: 8rem 0 4rem;
     text-align: center;
+  }
+
+  .gallery-hero .label {
+    margin-bottom: 1.5rem;
   }
 
   .gallery-hero h1 {
-    font-size: 2.4rem;
-    margin-bottom: 1rem;
+    font-size: clamp(3rem, 6vw, 5rem);
+    line-height: 1.05;
   }
 
-  .gallery-hero p {
-    color: var(--color-text-light);
+  .gallery-hero h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .gallery-sub {
+    color: var(--text-soft);
     font-size: 1.1rem;
+    line-height: 1.7;
+    margin-top: 1.5rem;
   }
 
   .gallery-content {
-    padding: 3rem 0;
-    text-align: center;
+    padding: 4rem 0 8rem;
   }
 
-  .coming-soon {
-    font-size: 1.2rem;
-    color: var(--color-accent-dark);
-    font-family: var(--font-heading);
+  .coming-soon-card {
+    max-width: 560px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 4rem 3rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .cs-icon {
+    color: var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .coming-soon-card h2 {
+    font-size: 1.6rem;
     margin-bottom: 1rem;
   }
 
-  .coming-soon-sub {
-    color: var(--color-text-light);
-    max-width: 480px;
-    margin: 0 auto;
+  .coming-soon-card p {
+    color: var(--text-soft);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .gallery-hero {
+      padding: 7rem 0 3rem;
+    }
   }
 </style>

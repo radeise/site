@@ -15,17 +15,15 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
   <title>{title} — Pixtil</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header class="site-header">
-    <nav class="container nav">
-      <a href="/" class="nav-logo">Pixtil</a>
-      <ul class="nav-links">
-        <li><a href="/outils/tissage">Tissage</a></li>
-        <li><a href="/galerie">Galerie</a></li>
-        <li><a href="/a-propos">À propos</a></li>
-      </ul>
+    <a href="/" class="logo">Pixtil <span>Design</span></a>
+    <nav class="nav">
+      <a href="/outils/tissage">Outils</a>
+      <a href="/galerie">Galerie</a>
+      <a href="/a-propos">Studio</a>
     </nav>
   </header>
 
@@ -33,9 +31,29 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
     <slot />
   </main>
 
-  <footer class="site-footer">
-    <div class="container footer-content">
-      <p>&copy; {new Date().getFullYear()} Pixtil — Design génératif & papier</p>
+  <footer class="site-footer bg-hlines">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="logo">Pixtil <span>Design</span></div>
+        <p>Design génératif & papier. Chaque création est unique, née de la rencontre entre code et artisanat.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <a href="/">Accueil</a>
+        <a href="/outils/tissage">Tissage papier</a>
+        <a href="/galerie">Galerie</a>
+        <a href="/a-propos">Studio</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:contact@pixtil.fr">contact@pixtil.fr</a>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <span>&copy; {new Date().getFullYear()} Pixtil — Design génératif & papier</span>
+      <div class="social-links">
+        <a href="#" title="Instagram">Ig</a>
+      </div>
     </div>
   </footer>
 </body>
@@ -47,66 +65,173 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
 
 <style>
   .site-header {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 100;
-    background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border);
-    height: var(--nav-height);
+    padding: 1.5rem 3rem;
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .logo {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: var(--text);
+  }
+
+  .logo span {
+    font-family: var(--sans);
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-soft);
   }
 
   .nav {
     display: flex;
+    gap: 2.5rem;
     align-items: center;
-    justify-content: space-between;
+  }
+
+  .nav a {
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    position: relative;
+  }
+
+  .nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: var(--red);
+    transition: width 0.4s var(--ease);
+  }
+
+  .nav a:hover {
+    color: var(--text);
+  }
+
+  .nav a:hover::after {
     width: 100%;
   }
 
-  .nav-logo {
-    font-family: var(--font-heading);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--color-text);
-    letter-spacing: 0.02em;
-  }
-
-  .nav-logo:hover {
-    color: var(--color-accent-dark);
-  }
-
-  .nav-links {
-    display: flex;
-    list-style: none;
-    gap: 2rem;
-  }
-
-  .nav-links a {
-    color: var(--color-text-light);
-    font-size: 0.95rem;
-    font-weight: 500;
-  }
-
-  .nav-links a:hover {
-    color: var(--color-accent-dark);
-  }
-
+  /* Footer */
   .site-footer {
-    margin-top: 4rem;
-    padding: 2rem 0;
-    border-top: 1px solid var(--color-border);
+    background-color: var(--text);
+    color: #fff;
+    padding: 5rem 0 3rem;
+    margin-top: 0;
   }
 
-  .footer-content {
-    text-align: center;
-    color: var(--color-text-light);
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .site-footer .logo {
+    color: #fff;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .site-footer .logo span {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .footer-brand p {
+    color: rgba(255, 255, 255, 0.4);
     font-size: 0.85rem;
+    line-height: 1.7;
+    max-width: 300px;
   }
 
-  @media (max-width: 640px) {
-    .nav-links {
-      gap: 1rem;
+  .footer-col h4 {
+    font-size: 0.7rem;
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 1.2rem;
+  }
+
+  .footer-col a {
+    display: block;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.75rem;
+  }
+
+  .footer-col a:hover {
+    color: var(--red);
+  }
+
+  .footer-bottom {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-bottom span {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  .social-links {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .social-links a {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .social-links a:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  @media (max-width: 768px) {
+    .site-header {
+      padding: 1rem 1.5rem;
+    }
+
+    .nav {
+      gap: 1.5rem;
+    }
+
+    .footer-inner {
+      grid-template-columns: 1fr;
     }
   }
 </style>

@@ -4,9 +4,10 @@ import TissageApp from '../../components/TissageApp.svelte';
 ---
 
 <BaseLayout title="Tissage papier — Paysage" description="Générateur de patrons de tissage papier par bruit de Perlin. Exportez vos patrons PDF prêts à imprimer et fabriquer.">
-  <section class="tool-hero">
+  <section class="tool-hero bg-grid">
     <div class="container">
-      <h1>Tissage papier</h1>
+      <div class="label">Outil</div>
+      <h1>Tissage <em>papier</em></h1>
       <p>
         Chaque motif est généré par un algorithme de bruit de Perlin,
         combiné à des armures textiles classiques. Le résultat simule
@@ -90,17 +91,26 @@ import TissageApp from '../../components/TissageApp.svelte';
 
 <style>
   .tool-hero {
-    padding: 3rem 0 2rem;
+    padding: 8rem 0 2rem;
     text-align: center;
   }
 
+  .tool-hero .label {
+    margin-bottom: 1rem;
+  }
+
   .tool-hero h1 {
-    font-size: 2rem;
+    font-size: clamp(2rem, 4vw, 3rem);
     margin-bottom: 0.75rem;
   }
 
+  .tool-hero h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
   .tool-hero p {
-    color: var(--color-text-light);
+    color: var(--text-soft);
     max-width: 560px;
     margin: 0 auto;
     line-height: 1.6;
@@ -122,13 +132,13 @@ import TissageApp from '../../components/TissageApp.svelte';
   .guide-content h2 {
     font-size: 1.4rem;
     margin-bottom: 1.5rem;
-    color: var(--color-accent-dark);
+    color: var(--text);
   }
 
   .guide-content h3 {
     font-size: 1.1rem;
     margin: 2rem 0 1rem;
-    color: var(--color-accent-dark);
+    color: var(--text);
   }
 
   .guide-steps {
@@ -148,7 +158,7 @@ import TissageApp from '../../components/TissageApp.svelte';
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--color-accent, #c4956a);
+    background: var(--text, #111);
     color: white;
     display: flex;
     align-items: center;

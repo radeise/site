@@ -562,18 +562,19 @@
   }
 
   .control-group {
-    border: 1px solid var(--color-border, #e5e0da);
-    border-radius: 8px;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 6px;
     padding: 0.85rem;
+    background: #fff;
   }
 
   .control-group h3 {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b6b6b;
+    letter-spacing: 0.12em;
+    color: var(--text-soft, #555);
     margin-bottom: 0.6rem;
-    font-family: system-ui, sans-serif;
+    font-family: var(--sans, system-ui, sans-serif);
     font-weight: 600;
   }
 
@@ -581,19 +582,20 @@
     display: block;
     font-size: 0.85rem;
     margin-bottom: 0.4rem;
-    color: #2a2a2a;
+    color: var(--text, #111);
   }
 
   input[type="range"] {
     width: 100%;
     margin-top: 0.2rem;
+    accent-color: var(--blue, #1A5CFF);
   }
 
   input[type="number"] {
     width: 100px;
     padding: 0.35rem 0.5rem;
-    border: 1px solid #e5e0da;
-    border-radius: 4px;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
     font-size: 0.9rem;
     font-family: monospace;
   }
@@ -601,8 +603,8 @@
   select {
     width: 100%;
     padding: 0.4rem;
-    border: 1px solid #e5e0da;
-    border-radius: 4px;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
     font-size: 0.85rem;
     background: white;
   }
@@ -615,18 +617,19 @@
   }
 
   .info-box {
-    background: #faf8f5;
+    background: var(--bg-warm, #EFEFE6);
+    border-color: transparent;
   }
 
   .info-text {
     font-size: 0.85rem;
-    color: #2a2a2a;
+    color: var(--text, #111);
     font-weight: 500;
   }
 
   .info-sub {
     font-size: 0.8rem;
-    color: #6b6b6b;
+    color: var(--text-soft, #555);
     margin-top: 0.2rem;
     font-family: monospace;
   }
@@ -649,8 +652,8 @@
   }
 
   .canvas-wrapper {
-    border: 1px solid #e5e0da;
-    border-radius: 4px;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 6px;
     overflow: auto;
     background: white;
     max-width: 100%;
@@ -658,45 +661,55 @@
 
   .canvas-hint {
     margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: #999;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--text-soft, #555);
+    text-transform: uppercase;
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: 1.5px solid var(--text, #111);
+    border-radius: 3px;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    background: transparent;
+    color: var(--text, #111);
   }
 
   .btn-small {
     padding: 0.35rem 0.7rem;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
   }
 
   .btn-primary {
-    background: #c4956a;
-    color: white;
+    background: var(--text, #111);
+    color: #fff;
+    border-color: var(--text, #111);
   }
 
   .btn-primary:hover {
-    background: #a67a52;
+    background: var(--blue, #1A5CFF);
+    border-color: var(--blue, #1A5CFF);
+    color: #fff;
   }
 
   .btn-outline {
     background: transparent;
-    border: 1.5px solid #e5e0da;
-    color: #2a2a2a;
+    border: 1.5px solid var(--border, #E0E0E0);
+    color: var(--text, #111);
   }
 
   .btn-outline:hover {
-    border-color: #c4956a;
-    color: #a67a52;
+    border-color: var(--blue, #1A5CFF);
+    color: var(--blue, #1A5CFF);
   }
 </style>
