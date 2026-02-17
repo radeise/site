@@ -1,110 +1,188 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const tools = [
+  { name: "Tissage Papier", slug: "tissage", desc: "Patron de tissage généré par bruit de Perlin. Armures textiles, export PDF.", href: "/outils/tissage", available: true, cats: ["popular","build"], img: "img-tissage" },
+  { name: "Points à relier", slug: "points", desc: "Dessinez un tracé, générez les points numérotés. Export PDF A4.", href: "/outils/points-a-relier", available: true, cats: ["popular","draw"], img: "img-points" },
+  { name: "Coloriage Génératif", slug: "coloriage", desc: "Motifs géométriques aléatoires à colorier. Mandalas, pavages, formes.", href: "#", available: false, cats: ["draw"], img: "img-coloriage" },
+  { name: "Labyrinthe", slug: "labyrinthe", desc: "Labyrinthes générés algorithmiquement. Plusieurs niveaux de difficulté.", href: "#", available: false, cats: ["play"], img: "img-labyrinthe" },
+  { name: "Mots mêlés", slug: "mots", desc: "Grilles de mots cachés personnalisables. Thèmes et tailles au choix.", href: "#", available: false, cats: ["play"], img: "img-mots" },
+  { name: "Mobile Papier", slug: "mobile", desc: "Patron avec calcul d'équilibre et instructions de montage.", href: "#", available: false, cats: ["build"], img: "img-mobile" },
+  { name: "Affiche Générative", slug: "affiche", desc: "Impression d'une affiche unique, motifs algorithmiques.", href: "#", available: false, cats: ["draw"], img: "img-affiche" },
+  { name: "Boîte Origami", slug: "origami", desc: "Patrons de boîtes dépliables avec motifs génératifs.", href: "#", available: false, cats: ["build"], img: "img-origami" },
+];
+
+const categories = [
+  { id: "all", label: "Tous" },
+  { id: "popular", label: "Populaires" },
+  { id: "draw", label: "Dessiner / Colorier" },
+  { id: "build", label: "Découper / Construire" },
+  { id: "play", label: "Jouer" },
+];
+
+const gallery = [
+  { title: "Tissage Satin", color: "var(--yellow)", pattern: "grid" },
+  { title: "Sergé croisé", color: "var(--red)", pattern: "hlines" },
+  { title: "Toile bicolore", color: "var(--blue)", pattern: "dots" },
+  { title: "Losange texturé", color: "#2ab54e", pattern: "crosshatch" },
+  { title: "Perlin dense", color: "#7b2ad4", pattern: "grid" },
+  { title: "Natté large", color: "var(--yellow)", pattern: "crosshatch" },
+];
 ---
 
 <BaseLayout title="Accueil">
   <!-- HERO -->
-  <section class="hero bg-grid">
+  <section class="hero bg-grid" id="hero">
     <div class="hero-label">Design génératif & papier — pliio.fr</div>
     <h1>Objets papier<br>d'<em>algorithmes</em></h1>
     <p class="hero-sub">
       Pliio crée des outils gratuits de génération d'objets papier uniques.
-      Tissage, mobiles, affiches — chaque motif est unique, prêt à fabriquer.
+      Tissage, jeux, affiches — chaque motif est unique, prêt à fabriquer.
     </p>
     <div class="hero-actions">
-      <a href="/outils/tissage" class="btn-primary-hero">
-        Essayer le tissage
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      <a href="#outils" class="btn-primary-hero">
+        Découvrir les outils
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
       </a>
     </div>
     <div class="hero-scroll">
-      <span>Découvrir</span>
+      <span>Explorer</span>
       <div class="scroll-line"></div>
     </div>
   </section>
 
-  <!-- MARQUEE -->
-  <div class="marquee-wrap bg-grid">
-    <div class="marquee">
-      <span class="marquee-item">Tissage Papier</span>
-      <span class="marquee-item">Design Génératif</span>
-      <span class="marquee-item">Patrons PDF</span>
-      <span class="marquee-item">Pièces Uniques</span>
-      <span class="marquee-item">Feuille d'Or</span>
-      <span class="marquee-item">Open Source</span>
-      <span class="marquee-item">Tissage Papier</span>
-      <span class="marquee-item">Design Génératif</span>
-      <span class="marquee-item">Patrons PDF</span>
-      <span class="marquee-item">Pièces Uniques</span>
-      <span class="marquee-item">Feuille d'Or</span>
-      <span class="marquee-item">Open Source</span>
-    </div>
-  </div>
-
   <!-- OUTILS -->
-  <section class="tools-section bg-grid">
+  <section class="tools-section" id="outils">
     <div class="container">
       <div class="section-header">
         <h2>Les <em>outils</em></h2>
-        <a href="/outils/tissage" class="section-link">Tous les outils &rarr;</a>
       </div>
+
+      <div class="cat-tabs" role="tablist">
+        {categories.map((cat, i) => (
+          <button
+            class={`cat-tab ${i === 0 ? 'active' : ''}`}
+            data-cat={cat.id}
+            role="tab"
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       <div class="tools-grid">
-        <a href="/outils/tissage" class="product-card featured">
-          <div class="card-img img-tissage"></div>
-          <div class="card-body card-body-featured">
-            <div class="card-tag">Disponible</div>
-            <div class="card-title">Tissage Papier</div>
-            <div class="card-desc">Patron de tissage généré par bruit de Perlin. Armures textiles classiques, export PDF prêt à imprimer.</div>
-          </div>
-        </a>
-
-        <a href="/outils/points-a-relier" class="product-card">
-          <div class="card-img img-points"></div>
-          <div class="card-body">
-            <div class="card-tag">Disponible</div>
-            <div class="card-title">Points à relier</div>
-            <div class="card-desc">Dessinez un tracé, générez les points numérotés. Export PDF A4.</div>
-          </div>
-        </a>
-
-        <div class="product-card disabled">
-          <div class="card-img img-affiche"></div>
-          <div class="card-body">
-            <div class="card-tag">Bientôt</div>
-            <div class="card-title">Affiche Générative</div>
-            <div class="card-desc">Impression directe d'une affiche unique, motifs algorithmiques.</div>
-          </div>
-        </div>
+        {tools.map(tool => (
+          <a
+            href={tool.available ? tool.href : undefined}
+            class={`product-card ${!tool.available ? 'disabled' : ''}`}
+            data-cats={tool.cats.join(',')}
+          >
+            <div class={`card-img ${tool.img}`}></div>
+            <div class="card-body">
+              <div class="card-tag">{tool.available ? 'Disponible' : 'Bientôt'}</div>
+              <div class="card-title">{tool.name}</div>
+              <div class="card-desc">{tool.desc}</div>
+            </div>
+          </a>
+        ))}
       </div>
     </div>
   </section>
 
+  <!-- GALERIE -->
+  <section class="gallery-section bg-dots" id="galerie">
+    <div class="container">
+      <div class="section-header">
+        <h2>La <em>galerie</em></h2>
+      </div>
+    </div>
+    <div class="gallery-track">
+      {gallery.map(item => (
+        <div class="gallery-card">
+          <div class="gallery-img" style={`--gc: ${item.color}`} data-pattern={item.pattern}></div>
+          <div class="gallery-label">{item.title}</div>
+        </div>
+      ))}
+      {gallery.map(item => (
+        <div class="gallery-card" aria-hidden="true">
+          <div class="gallery-img" style={`--gc: ${item.color}`} data-pattern={item.pattern}></div>
+          <div class="gallery-label">{item.title}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
   <!-- MANIFESTE -->
-  <section class="manifesto-section bg-hlines">
-    <div class="manifesto-inner container">
-      <div class="manifesto-text">
+  <section class="manifesto-section" id="manifeste">
+    <div class="container">
+      <div class="manifesto-head">
         <div class="label">Manifeste</div>
-        <h2>Algorithme,<br>artisanat &<br><em>geste humain</em></h2>
+        <h2>Du code au <em>papier</em></h2>
         <p>
-          Pliio est né de la rencontre entre le code génératif et les arts du papier.
-          Chaque outil transforme un algorithme en objet tangible — un motif que vous
-          imprimez, découpez et assemblez de vos mains.
+          Pliio transforme des algorithmes en objets tangibles.
+          Chaque outil génère un motif unique que vous imprimez, découpez et assemblez de vos mains.
         </p>
-        <p>Le résultat est toujours unique. Le processus est toujours le vôtre.</p>
+      </div>
+
+      <div class="pictos-grid">
+        <div class="picto-item">
+          <div class="picto-icon picto-code">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 12 6 24 16 36"/><polyline points="32 12 42 24 32 36"/><line x1="28" y1="8" x2="20" y2="40"/></svg>
+          </div>
+          <strong>Génératif</strong>
+          <span>Chaque motif naît d'un algorithme — bruit de Perlin, fractales, grammaires.</span>
+        </div>
+        <div class="picto-item">
+          <div class="picto-icon picto-scissors">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="36" r="5"/><circle cx="34" cy="36" r="5"/><line x1="40" y1="8" x2="17" y2="32"/><line x1="8" y1="8" x2="31" y2="32"/></svg>
+          </div>
+          <strong>Tangible</strong>
+          <span>Exportez en PDF, imprimez, découpez. Le résultat se touche et s'accroche.</span>
+        </div>
+        <div class="picto-item">
+          <div class="picto-icon picto-hand">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 32V14a3 3 0 0 1 6 0v12"/><path d="M24 24v-4a3 3 0 0 1 6 0v6"/><path d="M30 26v-2a3 3 0 0 1 6 0v8a12 12 0 0 1-24 4V22a3 3 0 0 1 6 0v10"/></svg>
+          </div>
+          <strong>Artisanal</strong>
+          <span>L'assemblage est un geste humain. Le code fait le motif, vous faites l'objet.</span>
+        </div>
+        <div class="picto-item">
+          <div class="picto-icon picto-unique">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 4v8"/><path d="M24 36v8"/><path d="M9.86 9.86l5.66 5.66"/><path d="M32.48 32.48l5.66 5.66"/><path d="M4 24h8"/><path d="M36 24h8"/><path d="M9.86 38.14l5.66-5.66"/><path d="M32.48 15.52l5.66-5.66"/><circle cx="24" cy="24" r="6"/></svg>
+          </div>
+          <strong>Unique</strong>
+          <span>Aucune pièce n'est identique. Un ID, une graine, un objet singulier.</span>
+        </div>
+      </div>
+
+      <div class="manifesto-cta">
         <a href="/a-propos" class="btn">
           En savoir plus
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </a>
       </div>
-      <div class="manifesto-visual">
-        <div class="mani-tile mt-1"></div>
-        <div class="mani-tile mt-2"></div>
-        <div class="mani-tile mt-3"></div>
-        <div class="mani-tile mt-4"></div>
-      </div>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  // Category filter tabs
+  document.querySelectorAll('.cat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const cat = tab.dataset.cat;
+      document.querySelectorAll('.product-card').forEach(card => {
+        const cats = card.dataset.cats?.split(',') || [];
+        if (cat === 'all' || cats.includes(cat)) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
 
 <style>
   /* Hero */
@@ -229,85 +307,51 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     100% { top: 40px; }
   }
 
-  /* Marquee */
-  .marquee-wrap {
-    padding: 2rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  .marquee {
-    display: flex;
-    gap: 3rem;
-    animation: marquee 25s linear infinite;
-    width: max-content;
-  }
-
-  .marquee-item {
-    font-family: var(--serif);
-    font-size: 1rem;
-    white-space: nowrap;
-    color: var(--text-soft);
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-  }
-
-  .marquee-item::after {
-    content: '\u25C6';
-    font-size: 0.4rem;
-    color: var(--red);
-  }
-
-  /* Tools Grid */
+  /* ========== OUTILS ========== */
   .tools-section {
     padding-bottom: 6rem;
   }
 
+  .cat-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .cat-tab {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.5rem 1.2rem;
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    background: transparent;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+  }
+
+  .cat-tab:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .cat-tab.active {
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+  }
+
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
-
-  .product-card.featured {
-    grid-column: span 2;
-    grid-row: span 2;
-  }
-
-  .product-card.featured .card-img {
-    aspect-ratio: auto;
-    height: 100%;
-    position: absolute;
-    inset: 0;
-  }
-
-  .card-body-featured {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 2.5rem;
-    background: linear-gradient(to top, rgba(17, 17, 17, 0.85) 0%, rgba(17, 17, 17, 0) 100%);
-    color: #fff;
-  }
-
-  .card-body-featured .card-tag {
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .card-body-featured .card-title {
-    font-size: 2rem;
-    color: #fff;
-  }
-
-  .card-body-featured .card-desc {
-    color: rgba(255, 255, 255, 0.6);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
   }
 
   .product-card.disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: default;
     pointer-events: none;
   }
@@ -316,7 +360,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .img-tissage {
     background: linear-gradient(135deg, var(--yellow) 0%, #FF9E2C 35%, var(--red) 70%, #C41A2A 100%);
   }
-
   .img-tissage::after {
     content: '';
     position: absolute;
@@ -330,7 +373,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .img-points {
     background: linear-gradient(160deg, #D0DFFF 0%, var(--blue) 100%);
   }
-
   .img-points::after {
     content: '';
     position: absolute;
@@ -339,10 +381,56 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     background-size: 20px 20px;
   }
 
+  .img-coloriage {
+    background: linear-gradient(135deg, #FFE0F0, #FF6EB4 80%);
+  }
+  .img-coloriage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-conic-gradient(rgba(255,255,255,0.12) 0% 25%, transparent 0% 50%);
+    background-size: 24px 24px;
+  }
+
+  .img-labyrinthe {
+    background: linear-gradient(135deg, #C5F0C5, #2ab54e 80%);
+  }
+  .img-labyrinthe::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.05) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.05) 2px, transparent 2px);
+    background-size: 16px 16px;
+  }
+
+  .img-mots {
+    background: linear-gradient(135deg, #D0F5E0, #34A853 80%);
+  }
+  .img-mots::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(0,0,0,0.04) 14px, rgba(0,0,0,0.04) 15px);
+  }
+
+  .img-mobile {
+    background: linear-gradient(160deg, #D0DFFF 0%, #7b2ad4 100%);
+  }
+  .img-mobile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 3px, transparent 3px);
+    background-size: 28px 28px;
+  }
+
   .img-affiche {
     background: linear-gradient(160deg, #FFF8DC, var(--yellow));
   }
-
   .img-affiche::after {
     content: '';
     position: absolute;
@@ -351,105 +439,192 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.04) 10px, rgba(0, 0, 0, 0.04) 11px);
   }
 
-  /* Manifeste */
-  .manifesto-section {
+  .img-origami {
+    background: linear-gradient(135deg, #F0DDE0, var(--red) 80%);
+  }
+  .img-origami::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(255,255,255,0.08) 12px, rgba(255,255,255,0.08) 13px),
+      repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,0.08) 12px, rgba(255,255,255,0.08) 13px);
+  }
+
+  /* ========== GALERIE ========== */
+  .gallery-section {
+    padding: 0 0 6rem;
+    overflow: hidden;
     background-color: var(--bg-warm);
-    padding: 8rem 0;
   }
 
-  .manifesto-inner {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6rem;
-    align-items: center;
+  .gallery-track {
+    display: flex;
+    gap: 1.25rem;
+    animation: galleryScroll 30s linear infinite;
+    width: max-content;
+    padding: 0 1.25rem;
   }
 
-  .manifesto-text .label {
-    margin-bottom: 1.5rem;
+  .gallery-track:hover {
+    animation-play-state: paused;
   }
 
-  .manifesto-text h2 {
-    font-size: clamp(2.5rem, 4vw, 3.5rem);
-    margin-bottom: 1.5rem;
+  @keyframes galleryScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
 
-  .manifesto-text h2 em {
+  .gallery-card {
+    flex-shrink: 0;
+    width: 260px;
+  }
+
+  .gallery-img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 8px;
+    background: var(--gc);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gallery-img[data-pattern="grid"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .gallery-img[data-pattern="dots"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.12) 2px, transparent 2px);
+    background-size: 18px 18px;
+  }
+
+  .gallery-img[data-pattern="hlines"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 7px, rgba(255,255,255,0.06) 7px, rgba(255,255,255,0.06) 8px
+    );
+  }
+
+  .gallery-img[data-pattern="crosshatch"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.06) 10px, rgba(255,255,255,0.06) 11px),
+      repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.06) 10px, rgba(255,255,255,0.06) 11px);
+  }
+
+  .gallery-label {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    text-align: center;
+  }
+
+  /* ========== MANIFESTE ========== */
+  .manifesto-section {
+    padding: 6rem 0;
+    background-color: var(--bg);
+  }
+
+  .manifesto-head {
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto 4rem;
+  }
+
+  .manifesto-head .label {
+    margin-bottom: 1rem;
+  }
+
+  .manifesto-head h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 1rem;
+  }
+
+  .manifesto-head h2 em {
     font-style: italic;
     color: var(--blue);
   }
 
-  .manifesto-text p {
+  .manifesto-head p {
     color: var(--text-soft);
-    font-size: 1rem;
-    line-height: 1.8;
-    max-width: 480px;
-    margin-bottom: 1rem;
+    line-height: 1.7;
   }
 
-  .manifesto-text .btn {
-    margin-top: 1.5rem;
-  }
-
-  .manifesto-visual {
+  .pictos-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
   }
 
-  .mani-tile {
-    border-radius: 6px;
-    overflow: hidden;
-    aspect-ratio: 3/4;
+  .picto-item {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
   }
 
-  .mani-tile:nth-child(2) { transform: translateY(2rem); }
-  .mani-tile:nth-child(4) { transform: translateY(2rem); }
-
-  .mt-1 {
-    background: var(--blue);
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 2px, transparent 2px);
-    background-size: 18px 18px;
+  .picto-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.4rem;
   }
 
-  .mt-2 {
-    background: var(--yellow);
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0, 0, 0, 0.06) 8px, rgba(0, 0, 0, 0.06) 9px);
+  .picto-icon svg {
+    width: 32px;
+    height: 32px;
   }
 
-  .mt-3 {
-    background: var(--red);
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 16px 16px;
+  .picto-code { background: rgba(26, 92, 255, 0.08); color: var(--blue); }
+  .picto-scissors { background: rgba(230, 48, 36, 0.08); color: var(--red); }
+  .picto-hand { background: rgba(255, 208, 0, 0.12); color: #B5920A; }
+  .picto-unique { background: rgba(42, 181, 78, 0.08); color: #2ab54e; }
+
+  .picto-item strong {
+    font-family: var(--serif);
+    font-size: 1.1rem;
   }
 
-  .mt-4 {
-    background: linear-gradient(160deg, #D8D8CE, #C5C5BA);
-    background-image:
-      repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(0, 0, 0, 0.04) 12px, rgba(0, 0, 0, 0.04) 13px),
-      repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(0, 0, 0, 0.04) 12px, rgba(0, 0, 0, 0.04) 13px);
+  .picto-item span {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    line-height: 1.5;
+    max-width: 200px;
   }
 
+  .manifesto-cta {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  /* ========== RESPONSIVE ========== */
   @media (max-width: 1024px) {
     .tools-grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
     }
 
-    .product-card.featured {
-      grid-column: span 2;
-      grid-row: span 1;
-    }
-
-    .product-card.featured .card-img {
-      position: relative;
-      aspect-ratio: 16/9;
-      height: auto;
-    }
-
-    .manifesto-inner {
-      grid-template-columns: 1fr;
-      gap: 3rem;
+    .pictos-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
     }
   }
 
@@ -459,19 +634,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     .tools-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
     }
 
-    .product-card.featured {
-      grid-column: span 1;
+    .cat-tabs {
+      gap: 0.35rem;
+    }
+
+    .cat-tab {
+      font-size: 0.72rem;
+      padding: 0.4rem 0.9rem;
+    }
+
+    .gallery-card {
+      width: 200px;
     }
 
     .manifesto-section {
-      padding: 5rem 0;
+      padding: 4rem 0;
     }
 
-    .manifesto-visual {
-      display: none;
+    .pictos-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tools-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pictos-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
