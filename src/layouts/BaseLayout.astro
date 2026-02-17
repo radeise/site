@@ -288,41 +288,4 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
     }
   }
 
-  /* Mobile nav — must be :global because .open is toggled by JS */
-  @media (max-width: 768px) {
-    :global(#nav) {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 105;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 2.5rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    :global(#nav.open) {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    :global(#nav a) {
-      font-size: 1.3rem;
-      font-family: var(--serif);
-      letter-spacing: 0.02em;
-      text-transform: none;
-      color: var(--text);
-    }
-
-    :global(#nav a::after) {
-      display: none;
-    }
-  }
 </style>
