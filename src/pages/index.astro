@@ -197,18 +197,6 @@ const gallery = [
     position: relative;
   }
 
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    pointer-events: none;
-  }
-
   .hero-label {
     font-size: 0.72rem;
     font-weight: 600;
@@ -323,6 +311,10 @@ const gallery = [
   /* ========== OUTILS ========== */
   .tools-section {
     padding-bottom: 6rem;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.08);
+    background: var(--bg);
   }
 
   .cat-tabs {
