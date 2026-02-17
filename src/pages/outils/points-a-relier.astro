@@ -1,18 +1,41 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PointsRelierApp from '../../components/PointsRelierApp.svelte';
+import ToolGuide from '../../components/ToolGuide.svelte';
+
+const guideSteps = `<ol>
+  <li><strong>Tracez</strong> le contour de votre dessin avec l'outil Tracé — ce sont ces lignes qui seront transformées en points numérotés à relier.</li>
+  <li><strong>Décorez</strong> avec l'outil Décor pour ajouter des détails (yeux, motifs, textures…) qui apparaîtront directement sur le résultat final.</li>
+  <li><strong>Ajustez</strong> le nombre de points, leur taille et la numérotation. Les étoiles colorées indiquent les jonctions entre vos différents traits.</li>
+  <li><strong>Exportez en PDF</strong> au format A4, prêt à imprimer — le fichier contient les points, les numéros et vos décors.</li>
+</ol>`;
+
+const guideMaterial = `<ul>
+  <li>Papier standard ou épais (80–160 g)</li>
+  <li>Crayons de couleur, feutres ou peinture pour colorier le résultat</li>
+  <li>Optionnel : papier calque pour reporter le dessin</li>
+</ul>
+<p style="margin-top:1rem; font-size:0.82rem; color:var(--text-soft);">
+  <strong>Navigation :</strong> <kbd>Molette</kbd> zoomer · <kbd>Espace</kbd>+glisser déplacer · <kbd>Ctrl+Z</kbd> annuler
+</p>`;
+
+const guideTabs = [
+  { label: 'Comment créer', content: guideSteps },
+  { label: 'Matériel recommandé', content: guideMaterial },
+];
 ---
 
-<BaseLayout title="Points à relier — Paysage" description="Dessinez un tracé libre, l'outil génère automatiquement les points numérotés. Exportez en PDF A4 prêt à imprimer.">
-  <section class="tool-hero bg-grid">
+<BaseLayout title="Points à relier — Pliio" description="Dessinez un tracé libre, l'outil génère les points numérotés. Exportez en PDF A4 prêt à imprimer.">
+  <section class="tool-header">
     <div class="container">
-      <div class="label">Outil</div>
       <h1>Points à <em>relier</em></h1>
-      <p>
-        Dessinez librement un tracé, ajoutez des détails décoratifs.
-        L'algorithme distribue les points numérotés le long du contour —
-        exportez le PDF A4 prêt à imprimer.
-      </p>
+      <p>Dessinez librement un tracé et l'outil distribue automatiquement les points numérotés le long du contour. Ajoutez des décors, puis exportez le tout en PDF prêt à imprimer.</p>
+    </div>
+  </section>
+
+  <section class="tool-guide-section">
+    <div class="container">
+      <ToolGuide tabs={guideTabs} client:load />
     </div>
   </section>
 
@@ -21,143 +44,43 @@ import PointsRelierApp from '../../components/PointsRelierApp.svelte';
       <PointsRelierApp client:load />
     </div>
   </section>
-
-  <section class="tool-guide">
-    <div class="container guide-content">
-      <h2>Comment créer votre dessin</h2>
-
-      <div class="guide-steps">
-        <div class="step">
-          <span class="step-num">1</span>
-          <div>
-            <strong>Tracez</strong> le contour principal avec l'outil Tracé — ce sont les traits qui seront convertis en points numérotés
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">2</span>
-          <div>
-            <strong>Décorez</strong> avec l'outil Décor pour ajouter des détails libres (yeux, motifs…) qui apparaîtront tels quels
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">3</span>
-          <div>
-            <strong>Ajustez</strong> les paramètres : nombre de points, taille, numérotation. Les étoiles colorées indiquent les jonctions entre traits
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">4</span>
-          <div>
-            <strong>Exportez</strong> en PDF A4 — le fichier contient les points, numéros et décors, prêt à imprimer
-          </div>
-        </div>
-      </div>
-
-      <h3>Navigation</h3>
-      <ul class="material-list">
-        <li><kbd>Molette</kbd> — zoomer / dézoomer</li>
-        <li><kbd>Espace</kbd> + glisser — déplacer la vue</li>
-        <li><kbd>Ctrl+Z</kbd> — annuler le dernier trait</li>
-      </ul>
-    </div>
-  </section>
 </BaseLayout>
 
 <style>
-  .tool-hero {
-    padding: 8rem 0 2rem;
+  .tool-header {
+    padding: calc(var(--nav-height) + 2rem) 0 1.5rem;
     text-align: center;
   }
 
-  .tool-hero .label {
-    margin-bottom: 1rem;
+  .tool-header h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin-bottom: 0.6rem;
+    color: var(--text);
   }
 
-  .tool-hero h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin-bottom: 0.75rem;
-  }
-
-  .tool-hero h1 em {
+  .tool-header h1 em {
     font-style: italic;
     color: var(--blue);
   }
 
-  .tool-hero p {
+  .tool-header p {
     color: var(--text-soft);
-    max-width: 560px;
+    max-width: 540px;
     margin: 0 auto;
     line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .tool-guide-section {
+    padding: 0 0 1.5rem;
+  }
+
+  .tool-guide-section .container {
+    max-width: 800px;
   }
 
   .tool-app {
-    padding: 2rem 0;
-  }
-
-  .tool-guide {
-    padding: 3rem 0;
-  }
-
-  .guide-content {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .guide-content h2 {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-    color: var(--text);
-  }
-
-  .guide-content h3 {
-    font-size: 1.1rem;
-    margin: 2rem 0 1rem;
-    color: var(--text);
-  }
-
-  .guide-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .step {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .step-num {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--text, #111);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 0.1rem;
-  }
-
-  .material-list {
-    padding-left: 1.5rem;
-    line-height: 1.8;
-  }
-
-  .material-list li {
-    margin-bottom: 0.3rem;
-  }
-
-  kbd {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    background: #f5f5f5;
-    font-family: monospace;
-    font-size: 0.85rem;
+    padding: 0 0 3rem;
   }
 </style>

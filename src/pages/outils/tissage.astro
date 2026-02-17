@@ -1,18 +1,45 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TissageApp from '../../components/TissageApp.svelte';
+import ToolGuide from '../../components/ToolGuide.svelte';
+
+const guideSteps = `<ol>
+  <li><strong>Générez</strong> un motif en cliquant sur l'aperçu ou en ajustant les réglages à gauche (format, épaisseur, identifiant).</li>
+  <li><strong>Explorez</strong> les variations — chaque identifiant produit un motif unique. Changez-le pour découvrir de nouveaux entrelacs.</li>
+  <li><strong>Exportez les patrons PDF</strong> — vous obtenez 4 fichiers : le patron de chaîne (à retourner après découpe), le guide de trame, un aperçu du résultat et une fiche récapitulative.</li>
+  <li><strong>Imprimez</strong> sur du papier épais (160 à 200 g), type Canson ou Clairefontaine.</li>
+  <li><strong>Découpez</strong> les bandes en suivant les repères imprimés, puis <strong>tissez</strong> en entrecroisant les bandes selon le motif.</li>
+  <li><strong>Finitions</strong> — collez les bords, et si vous le souhaitez, ajoutez de la peinture ou de la feuille d'or.</li>
+</ol>`;
+
+const guideMaterial = `<ul>
+  <li>Papier cartonné 160–200 g (Canson, Clairefontaine…)</li>
+  <li>Cutter et règle métallique</li>
+  <li>Tapis de découpe</li>
+  <li>Colle en bâton ou colle blanche</li>
+  <li>Optionnel : feuille d'or, peinture acrylique, vernis</li>
+</ul>
+<p style="margin-top:1rem; font-size:0.82rem; color:var(--text-soft);">
+  <strong>Raccourcis :</strong> <kbd>s</kbd> exporter les PDF · <kbd>clic</kbd> sur l'aperçu pour un nouveau motif
+</p>`;
+
+const guideTabs = [
+  { label: 'Comment réaliser', content: guideSteps },
+  { label: 'Matériel recommandé', content: guideMaterial },
+];
 ---
 
-<BaseLayout title="Tissage papier — Paysage" description="Générateur de patrons de tissage papier par bruit de Perlin. Exportez vos patrons PDF prêts à imprimer et fabriquer.">
-  <section class="tool-hero bg-grid">
+<BaseLayout title="Tissage papier — Pliio" description="Créez des motifs de tissage papier uniques. Exportez les patrons PDF, imprimez et fabriquez.">
+  <section class="tool-header">
     <div class="container">
-      <div class="label">Outil</div>
       <h1>Tissage <em>papier</em></h1>
-      <p>
-        Chaque motif est généré par un algorithme de bruit de Perlin,
-        combiné à des armures textiles classiques. Le résultat simule
-        un tissage chaîne/trame — exportez les patrons PDF pour le fabriquer.
-      </p>
+      <p>Créez des motifs de tissage uniques — chaque combinaison de réglages produit un entrelacs différent. Exportez les patrons, imprimez-les et fabriquez votre tissage en papier.</p>
+    </div>
+  </section>
+
+  <section class="tool-guide-section">
+    <div class="container">
+      <ToolGuide tabs={guideTabs} client:load />
     </div>
   </section>
 
@@ -21,179 +48,43 @@ import TissageApp from '../../components/TissageApp.svelte';
       <TissageApp client:load />
     </div>
   </section>
-
-  <section class="tool-guide">
-    <div class="container guide-content">
-      <h2>Comment réaliser votre tissage</h2>
-
-      <div class="guide-steps">
-        <div class="step">
-          <span class="step-num">1</span>
-          <div>
-            <strong>Générez</strong> votre motif en cliquant sur l'aperçu ou en ajustant les paramètres (format, épaisseur des fils, ID)
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">2</span>
-          <div>
-            <strong>Exportez</strong> les PDF — l'export génère 4 fichiers :
-            <ul>
-              <li><em>ChaîneInverse</em> — patron miroir des fils de chaîne (à retourner après découpe)</li>
-              <li><em>Trame</em> — guide de peinture des bandes de trame avec repères de découpe</li>
-              <li><em>Preview</em> — aperçu du tissage final</li>
-              <li><em>Info</em> — métadonnées (dimensions, ID)</li>
-            </ul>
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">3</span>
-          <div>
-            <strong>Imprimez</strong> les patrons sur papier 160-200g (Canson, Clairefontaine)
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">4</span>
-          <div>
-            <strong>Découpez</strong> les bandes de chaîne et de trame en suivant les repères
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">5</span>
-          <div>
-            <strong>Tissez</strong> en entrecroisant les bandes selon le motif
-          </div>
-        </div>
-        <div class="step">
-          <span class="step-num">6</span>
-          <div>
-            <strong>Finitions</strong> — fixez avec de la colle, ajoutez optionnellement de la feuille d'or ou de la peinture acrylique
-          </div>
-        </div>
-      </div>
-
-      <h3>Matériel recommandé</h3>
-      <ul class="material-list">
-        <li>Papier cartonné 160-200g</li>
-        <li>Cutter et règle métallique</li>
-        <li>Tapis de découpe</li>
-        <li>Colle en bâton ou colle blanche</li>
-        <li>Optionnel : feuille d'or, peinture acrylique</li>
-      </ul>
-
-      <h3>Raccourcis</h3>
-      <ul class="material-list">
-        <li><kbd>s</kbd> — exporter les 4 fichiers PDF</li>
-        <li><kbd>clic</kbd> sur l'aperçu — générer un nouveau motif</li>
-      </ul>
-    </div>
-  </section>
 </BaseLayout>
 
 <style>
-  .tool-hero {
-    padding: 8rem 0 2rem;
+  .tool-header {
+    padding: calc(var(--nav-height) + 2rem) 0 1.5rem;
     text-align: center;
   }
 
-  .tool-hero .label {
-    margin-bottom: 1rem;
+  .tool-header h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin-bottom: 0.6rem;
+    color: var(--text);
   }
 
-  .tool-hero h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin-bottom: 0.75rem;
-  }
-
-  .tool-hero h1 em {
+  .tool-header h1 em {
     font-style: italic;
     color: var(--blue);
   }
 
-  .tool-hero p {
+  .tool-header p {
     color: var(--text-soft);
-    max-width: 560px;
+    max-width: 540px;
     margin: 0 auto;
     line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .tool-guide-section {
+    padding: 0 0 1.5rem;
+  }
+
+  .tool-guide-section .container {
+    max-width: 800px;
   }
 
   .tool-app {
-    padding: 2rem 0;
-  }
-
-  .tool-guide {
-    padding: 3rem 0;
-  }
-
-  .guide-content {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .guide-content h2 {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-    color: var(--text);
-  }
-
-  .guide-content h3 {
-    font-size: 1.1rem;
-    margin: 2rem 0 1rem;
-    color: var(--text);
-  }
-
-  .guide-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .step {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .step-num {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--text, #111);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 0.1rem;
-  }
-
-  .step ul {
-    margin-top: 0.5rem;
-    padding-left: 1.2rem;
-  }
-
-  .step li {
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-  }
-
-  .material-list {
-    padding-left: 1.5rem;
-    line-height: 1.8;
-  }
-
-  .material-list li {
-    margin-bottom: 0.3rem;
-  }
-
-  kbd {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    background: #f5f5f5;
-    font-family: monospace;
-    font-size: 0.85rem;
+    padding: 0 0 3rem;
   }
 </style>

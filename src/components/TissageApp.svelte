@@ -4,8 +4,6 @@
   import { FORMATS, FORMAT_DEFAULT, RATIO, px } from '../lib/formats.js';
 
   // --- State ---
-  let canvasContainer;
-  let p5Instance = null;
   let tissage = $state(null);
 
   // Paramètres utilisateur
@@ -16,14 +14,125 @@
   let id = $state(Math.floor(Math.random() * 100000));
   let idInput = $state('');
 
-  // Échelle d'affichage (le canvas est réduit pour tenir à l'écran)
-  const ratioScale = 0.5;
-
   // Infos dérivées
   let infoText = $derived(tissage ? `${tissage.warpQuantity} chaînes × ${tissage.weftQuantity} trames — ${tissage.largeurTissage.toFixed(1)} × ${tissage.hauteurTissage.toFixed(1)} cm` : '');
 
   // Formats pour le sélecteur
   const formatEntries = Object.entries(FORMATS);
+
+  // Canvas & zoom
+  const DPR = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+  const BASE_SCALE = 0.5; // cm → px base scale (half of RATIO)
+
+  let canvasEl;
+  let canvasWrap;
+  let canvasArea;
+  let ctx;
+
+  let baseW = $state(400);
+  let baseH = $state(600);
+
+  // Zoom / Pan
+  let zoom = $state(1);
+  let panX = $state(0);
+  let panY = $state(0);
+  let spaceDown = false;
+  let isPanning = false;
+  let panMX = 0, panMY = 0, panSX = 0, panSY = 0;
+
+  function computeBaseSize() {
+    const fmt = FORMATS[formatKey];
+    baseW = Math.round(px(fmt.cadre.x) * BASE_SCALE);
+    baseH = Math.round(px(fmt.cadre.y) * BASE_SCALE);
+  }
+
+  // --- Canvas size & transform ---
+  function applyCanvasSize() {
+    if (!canvasEl || !ctx) return;
+    computeBaseSize();
+    const pw = Math.round(baseW * zoom * DPR);
+    const ph = Math.round(baseH * zoom * DPR);
+    canvasEl.width = pw;
+    canvasEl.height = ph;
+    canvasEl.style.width = Math.round(baseW * zoom) + 'px';
+    canvasEl.style.height = Math.round(baseH * zoom) + 'px';
+    const sf = pw / baseW;
+    ctx.setTransform(sf, 0, 0, sf, 0, 0);
+  }
+
+  function updateTransform() {
+    if (!canvasWrap) return;
+    canvasWrap.style.transform = `translate(${panX}px,${panY}px)`;
+  }
+
+  function centerCanvas() {
+    if (!canvasArea) return;
+    const ar = canvasArea.getBoundingClientRect();
+    const cw = baseW * zoom, ch = baseH * zoom;
+    panX = Math.max(0, (ar.width - cw) / 2);
+    panY = Math.max(0, (ar.height - ch) / 2);
+    updateTransform();
+  }
+
+  function clampPan() {
+    if (!canvasArea) return;
+    const ar = canvasArea.getBoundingClientRect();
+    const cw = baseW * zoom, ch = baseH * zoom;
+    const minX = Math.min(0, ar.width - cw - 20);
+    const maxX = Math.max(ar.width - cw, 20);
+    const minY = Math.min(0, ar.height - ch - 20);
+    const maxY = Math.max(ar.height - ch, 20);
+    panX = Math.max(minX, Math.min(maxX, panX));
+    panY = Math.max(minY, Math.min(maxY, panY));
+  }
+
+  // --- Zoom ---
+  function zoomAt(newZoom, pivotCX, pivotCY) {
+    newZoom = Math.max(0.5, Math.min(4, Math.round(newZoom * 20) / 20));
+    if (newZoom === zoom) return;
+    const ar = canvasArea.getBoundingClientRect();
+    const ax = pivotCX - ar.left, ay = pivotCY - ar.top;
+    const lx = (ax - panX) / zoom, ly = (ay - panY) / zoom;
+    zoom = newZoom;
+    applyCanvasSize();
+    panX = ax - lx * zoom;
+    panY = ay - ly * zoom;
+    clampPan();
+    updateTransform();
+    render();
+  }
+
+  function zoomCenter(delta) {
+    const ar = canvasArea.getBoundingClientRect();
+    zoomAt(zoom + delta, ar.left + ar.width / 2, ar.top + ar.height / 2);
+  }
+
+  function resetZoom() {
+    zoom = 1;
+    applyCanvasSize();
+    centerCanvas();
+    render();
+  }
+
+  // --- Pan ---
+  function startPan(cx, cy) {
+    isPanning = true;
+    panMX = cx; panMY = cy;
+    panSX = panX; panSY = panY;
+    if (canvasEl) canvasEl.style.cursor = 'grabbing';
+  }
+
+  function doPan(cx, cy) {
+    panX = panSX + (cx - panMX);
+    panY = panSY + (cy - panMY);
+    clampPan();
+    updateTransform();
+  }
+
+  function endPan() {
+    isPanning = false;
+    if (canvasEl) canvasEl.style.cursor = spaceDown ? 'grab' : 'pointer';
+  }
 
   // --- Initialisation ---
   function buildTissage() {
@@ -31,112 +140,100 @@
     idInput = String(tissage.id);
   }
 
-  // --- Rendu p5.js ---
-  function createSketch(p) {
-    p.setup = function () {
-      const fmt = FORMATS[formatKey];
-      const w = px(fmt.cadre.x) * ratioScale;
-      const h = px(fmt.cadre.y) * ratioScale;
-      p.createCanvas(w, h);
-      p.noLoop();
-    };
+  // --- Rendu Canvas ---
+  function render() {
+    if (!ctx || !tissage) return;
+    const s = BASE_SCALE;
 
-    p.draw = function () {
-      if (!tissage) return;
+    ctx.clearRect(0, 0, baseW, baseH);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, baseW, baseH);
 
-      const s = ratioScale;
-      const fmt = tissage.format;
-      const cW = px(fmt.cadre.x) * s;
-      const cH = px(fmt.cadre.y) * s;
+    const ancX = px(tissage.ancrage.x) * s;
+    const ancY = px(tissage.ancrage.y) * s;
 
-      p.background(255);
-
-      const ancX = px(tissage.ancrage.x) * s;
-      const ancY = px(tissage.ancrage.y) * s;
-
-      // --- Dessiner les cellules noires (trame au-dessus) ---
-      p.noStroke();
-      p.fill(0);
-
-      for (let y = 0; y < tissage.weftQuantity; y++) {
-        for (let x = 0; x < tissage.warpQuantity; x++) {
-          const cell = tissage.grid[y][x];
-          if (cell.isBlack) {
-            p.rect(
-              ancX + px(cell.position.x) * s,
-              ancY + px(cell.position.y) * s,
-              px(tissage.warpThickness) * s,
-              px(tissage.weftThickness) * s
-            );
-          }
-        }
-      }
-
-      // --- Dessiner les fils de chaîne (lignes verticales grises) ---
-      p.stroke(120);
-      p.strokeWeight(0.5);
-      p.noFill();
-
-      const topExtension = px(1) * s;   // 1 cm de dépassement
-      const warpW = px(tissage.warpThickness) * s;
-      const totalH = px(tissage.hauteurTissage) * s;
-
-      // Première colonne : segments uniquement sur les cellules noires
-      for (let y = 0; y < tissage.weftQuantity; y++) {
-        const cell = tissage.grid[y][0];
+    // Cellules noires (trame au-dessus)
+    ctx.fillStyle = '#000';
+    for (let y = 0; y < tissage.weftQuantity; y++) {
+      for (let x = 0; x < tissage.warpQuantity; x++) {
+        const cell = tissage.grid[y][x];
         if (cell.isBlack) {
-          const cy = ancY + px(cell.position.y) * s;
-          const segTop = (y === 0) ? cy - topExtension : cy;
-          const segBot = (y === tissage.weftQuantity - 1) ? cy + px(tissage.weftThickness) * s + topExtension : cy + px(tissage.weftThickness) * s;
-          p.line(ancX, segTop, ancX, segBot);
+          ctx.fillRect(
+            ancX + px(cell.position.x) * s,
+            ancY + px(cell.position.y) * s,
+            px(tissage.warpThickness) * s,
+            px(tissage.weftThickness) * s
+          );
         }
       }
+    }
 
-      // Colonnes intermédiaires : ligne continue
-      for (let x = 1; x < tissage.warpQuantity; x++) {
-        const cx = ancX + px(x * tissage.warpThickness) * s;
-        p.line(cx, ancY - topExtension, cx, ancY + totalH + topExtension);
+    // Fils de chaîne (lignes verticales grises)
+    ctx.strokeStyle = 'rgb(120,120,120)';
+    ctx.lineWidth = 0.5;
+
+    const topExt = px(1) * s;
+    const warpW = px(tissage.warpThickness) * s;
+    const totalH = px(tissage.hauteurTissage) * s;
+
+    // Première colonne : segments sur cellules noires
+    for (let y = 0; y < tissage.weftQuantity; y++) {
+      const cell = tissage.grid[y][0];
+      if (cell.isBlack) {
+        const cy = ancY + px(cell.position.y) * s;
+        const segTop = y === 0 ? cy - topExt : cy;
+        const segBot = y === tissage.weftQuantity - 1 ? cy + px(tissage.weftThickness) * s + topExt : cy + px(tissage.weftThickness) * s;
+        ctx.beginPath();
+        ctx.moveTo(ancX, segTop);
+        ctx.lineTo(ancX, segBot);
+        ctx.stroke();
       }
+    }
 
-      // Dernière colonne : segments sur cellules noires
-      const lastX = ancX + px(tissage.warpQuantity * tissage.warpThickness) * s;
-      for (let y = 0; y < tissage.weftQuantity; y++) {
-        const cell = tissage.grid[y][tissage.warpQuantity - 1];
-        if (cell.isBlack) {
-          const cy = ancY + px(cell.position.y) * s;
-          const segTop = (y === 0) ? cy - topExtension : cy;
-          const segBot = (y === tissage.weftQuantity - 1) ? cy + px(tissage.weftThickness) * s + topExtension : cy + px(tissage.weftThickness) * s;
-          p.line(lastX, segTop, lastX, segBot);
-        }
+    // Colonnes intermédiaires : ligne continue
+    for (let x = 1; x < tissage.warpQuantity; x++) {
+      const cx = ancX + px(x * tissage.warpThickness) * s;
+      ctx.beginPath();
+      ctx.moveTo(cx, ancY - topExt);
+      ctx.lineTo(cx, ancY + totalH + topExt);
+      ctx.stroke();
+    }
+
+    // Dernière colonne : segments sur cellules noires
+    const lastX = ancX + px(tissage.warpQuantity * tissage.warpThickness) * s;
+    for (let y = 0; y < tissage.weftQuantity; y++) {
+      const cell = tissage.grid[y][tissage.warpQuantity - 1];
+      if (cell.isBlack) {
+        const cy = ancY + px(cell.position.y) * s;
+        const segTop = y === 0 ? cy - topExt : cy;
+        const segBot = y === tissage.weftQuantity - 1 ? cy + px(tissage.weftThickness) * s + topExt : cy + px(tissage.weftThickness) * s;
+        ctx.beginPath();
+        ctx.moveTo(lastX, segTop);
+        ctx.lineTo(lastX, segBot);
+        ctx.stroke();
       }
+    }
 
-      // --- Cadre ---
-      p.stroke(120);
-      p.strokeWeight(0.5);
-      p.noFill();
-      p.rect(0, 0, cW - 1, cH - 1);
+    // Cadre
+    ctx.strokeStyle = 'rgb(120,120,120)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(0, 0, baseW - 1, baseH - 1);
 
-      // --- Timecode ---
-      p.fill(120);
-      p.noStroke();
-      p.textSize(8);
-      p.textAlign(p.LEFT, p.TOP);
-      p.text(tissage.getTimecode(), ancX, ancY + totalH + topExtension + 4);
-    };
-
-    p.mousePressed = function () {
-      // Clic sur le canvas → nouveau motif
-      if (p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
-        regenerate();
-      }
-    };
+    // Timecode
+    ctx.fillStyle = 'rgb(120,120,120)';
+    ctx.font = '8px system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(tissage.getTimecode(), ancX, ancY + totalH + topExt + 4);
   }
 
   // --- Actions ---
   function regenerate() {
     id = Math.floor(Math.random() * 100000);
     buildTissage();
-    redraw();
+    applyCanvasSize();
+    centerCanvas();
+    render();
   }
 
   function applyId() {
@@ -144,23 +241,16 @@
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 99999) {
       id = parsed;
       buildTissage();
-      redraw();
-    }
-  }
-
-  function redraw() {
-    if (p5Instance && tissage) {
-      const fmt = tissage.format;
-      const w = px(fmt.cadre.x) * ratioScale;
-      const h = px(fmt.cadre.y) * ratioScale;
-      p5Instance.resizeCanvas(w, h);
-      p5Instance.redraw();
+      render();
     }
   }
 
   function updateParams() {
     buildTissage();
-    redraw();
+    computeBaseSize();
+    applyCanvasSize();
+    centerCanvas();
+    render();
   }
 
   // --- Export PDF ---
@@ -211,7 +301,6 @@
 
     const previewBlob = previewPdf.output('blob');
     downloadBlob(previewBlob, `Preview-${t.id}.pdf`);
-
     await delay(500);
 
     // --- 2. ChaîneInverse.pdf (miroir horizontal) ---
@@ -282,7 +371,6 @@
 
     const chaineBlob = chainePdf.output('blob');
     downloadBlob(chaineBlob, `ChaineInverse-${t.id}.pdf`);
-
     await delay(500);
 
     // --- 3. Trame.pdf ---
@@ -360,7 +448,6 @@
 
     const trameBlob = tramePdf.output('blob');
     downloadBlob(trameBlob, `Trame-${t.id}.pdf`);
-
     await delay(500);
 
     // --- 4. Info.txt ---
@@ -374,16 +461,9 @@
     const data = {
       version: '1.0',
       type: 'tissage',
-      params: {
-        formatKey,
-        warpThickness,
-        weftThickness,
-        weftSpace,
-        id: tissage.id,
-      },
+      params: { formatKey, warpThickness, weftThickness, weftSpace, id: tissage.id },
       created: new Date().toISOString().split('T')[0],
     };
-
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -400,7 +480,6 @@
     input.addEventListener('change', (e) => {
       const file = e.target?.files?.[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
@@ -415,7 +494,9 @@
           weftSpace = data.params.weftSpace ?? 0.06;
           id = data.params.id ?? 0;
           buildTissage();
-          redraw();
+          applyCanvasSize();
+          centerCanvas();
+          render();
         } catch {
           alert('Fichier invalide.');
         }
@@ -440,16 +521,54 @@
     });
   }
 
-  // --- Raccourci clavier ---
+  // --- Event handlers ---
   function handleKeydown(e) {
-    if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
+    if (e.key === 's' && !e.ctrlKey && !e.metaKey && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
       exportAllPDF();
     }
+    if (e.code === 'Space' && !e.repeat && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      spaceDown = true;
+      if (canvasEl) canvasEl.style.cursor = 'grab';
+    }
+  }
+
+  function handleKeyup(e) {
+    if (e.code === 'Space') {
+      spaceDown = false;
+      isPanning = false;
+      if (canvasEl) canvasEl.style.cursor = 'pointer';
+    }
+  }
+
+  function handleWheel(e) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.15 : 0.15;
+    zoomAt(zoom + delta, e.clientX, e.clientY);
+  }
+
+  function handleAreaMousedown(e) {
+    if (e.button === 1 || (e.button === 0 && spaceDown)) {
+      e.preventDefault();
+      startPan(e.clientX, e.clientY);
+      return;
+    }
+    if (e.button === 0 && e.target === canvasEl) {
+      regenerate();
+    }
+  }
+
+  function handleAreaMousemove(e) {
+    if (isPanning) doPan(e.clientX, e.clientY);
+  }
+
+  function handleAreaMouseup(e) {
+    if (isPanning) endPan();
   }
 
   // --- Lifecycle ---
-  onMount(async () => {
+  onMount(() => {
     // Charger depuis URL
     const params = new URLSearchParams(window.location.search);
     if (params.has('id')) id = Number(params.get('id'));
@@ -459,24 +578,23 @@
     if (params.has('ws')) weftSpace = Number(params.get('ws'));
 
     buildTissage();
-
-    const p5Module = await import('p5');
-    const P5 = p5Module.default;
-    p5Instance = new P5(createSketch, canvasContainer);
+    ctx = canvasEl.getContext('2d');
+    computeBaseSize();
+    applyCanvasSize();
+    centerCanvas();
+    render();
 
     window.addEventListener('keydown', handleKeydown);
+    window.addEventListener('keyup', handleKeyup);
+    window.addEventListener('resize', () => { clampPan(); updateTransform(); });
   });
 
   onDestroy(() => {
-    if (p5Instance) {
-      p5Instance.remove();
-      p5Instance = null;
-    }
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeydown);
+      window.removeEventListener('keyup', handleKeyup);
     }
   });
-
 </script>
 
 <div class="tissage-app">
@@ -535,30 +653,47 @@
     </div>
   </div>
 
-  <div class="preview">
-    <div class="canvas-wrapper" bind:this={canvasContainer}></div>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="canvas-area" bind:this={canvasArea}
+    onmousedown={handleAreaMousedown}
+    onmousemove={handleAreaMousemove}
+    onmouseup={handleAreaMouseup}
+    onwheel={handleWheel}>
+    <div class="canvas-wrap" bind:this={canvasWrap}>
+      <canvas bind:this={canvasEl}></canvas>
+    </div>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick={() => zoomCenter(-0.25)}>−</button>
+      <span class="zoom-label">{Math.round(zoom * 100)}%</span>
+      <button class="zoom-btn" onclick={() => zoomCenter(0.25)}>+</button>
+      <button class="zoom-btn zoom-reset" onclick={resetZoom}>↺</button>
+    </div>
     <p class="canvas-hint">Cliquez sur l'aperçu pour un nouveau motif</p>
   </div>
 </div>
 
 <style>
   .tissage-app {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-
-  @media (max-width: 860px) {
-    .tissage-app {
-      grid-template-columns: 1fr;
-    }
+    display: flex;
+    gap: 0;
+    min-height: 70vh;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
   }
 
   .controls {
+    width: 280px;
+    min-width: 280px;
+    background: #fff;
+    border-right: 1px solid var(--border, #E0E0E0);
+    padding: 1.25rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    overflow-y: auto;
+    max-height: 70vh;
   }
 
   .control-group {
@@ -638,6 +773,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    margin-top: auto;
   }
 
   .full-width {
@@ -645,26 +781,81 @@
     justify-content: center;
   }
 
-  .preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .canvas-area {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-warm, #EFEFE6);
   }
 
-  .canvas-wrapper {
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 6px;
-    overflow: auto;
-    background: white;
-    max-width: 100%;
+  .canvas-wrap {
+    position: absolute;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    transform-origin: 0 0;
+    will-change: transform;
+    cursor: pointer;
+  }
+
+  .canvas-wrap canvas {
+    display: block;
   }
 
   .canvas-hint {
-    margin-top: 0.5rem;
+    position: absolute;
+    bottom: 44px;
+    left: 0;
+    right: 0;
+    text-align: center;
     font-size: 0.72rem;
     letter-spacing: 0.05em;
     color: var(--text-soft, #555);
     text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    z-index: 10;
+  }
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border, #E0E0E0);
+    background: #fff;
+    color: var(--text, #111);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .zoom-btn:hover {
+    border-color: var(--blue, #1A5CFF);
+    color: var(--blue, #1A5CFF);
+  }
+
+  .zoom-reset {
+    font-size: 12px;
+  }
+
+  .zoom-label {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: var(--text-soft, #555);
+    align-self: center;
+    min-width: 36px;
+    text-align: center;
   }
 
   .btn {
@@ -711,5 +902,24 @@
   .btn-outline:hover {
     border-color: var(--blue, #1A5CFF);
     color: var(--blue, #1A5CFF);
+  }
+
+  @media (max-width: 860px) {
+    .tissage-app {
+      flex-direction: column;
+      min-height: auto;
+    }
+
+    .controls {
+      width: 100%;
+      min-width: unset;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--border, #E0E0E0);
+    }
+
+    .canvas-area {
+      height: 50vh;
+    }
   }
 </style>
