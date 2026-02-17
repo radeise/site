@@ -58,14 +58,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
         </a>
 
-        <div class="product-card disabled">
-          <div class="card-img img-mobile"></div>
+        <a href="/outils/points-a-relier" class="product-card">
+          <div class="card-img img-points"></div>
           <div class="card-body">
-            <div class="card-tag">Bientôt</div>
-            <div class="card-title">Mobile</div>
-            <div class="card-desc">Patron avec calcul d'équilibre et instructions de montage.</div>
+            <div class="card-tag">Disponible</div>
+            <div class="card-title">Points à relier</div>
+            <div class="card-desc">Dessinez un tracé, générez les points numérotés. Export PDF A4.</div>
           </div>
-        </div>
+        </a>
 
         <div class="product-card disabled">
           <div class="card-img img-affiche"></div>
@@ -327,11 +327,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     background-size: 12px 12px;
   }
 
-  .img-mobile {
+  .img-points {
     background: linear-gradient(160deg, #D0DFFF 0%, var(--blue) 100%);
   }
 
-  .img-mobile::after {
+  .img-points::after {
     content: '';
     position: absolute;
     inset: 0;
