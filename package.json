@@ -1,8 +1,8 @@
 {
-  "name": "pixtil",
+  "name": "pliio",
   "version": "0.1.0",
   "type": "module",
-  "description": "Plateforme de design génératif papier — pixtil.fr",
+  "description": "Plateforme de design génératif papier — pliio.fr",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

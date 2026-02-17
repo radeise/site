@@ -388,7 +388,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pixtil-tissage-${tissage.id}.json`;
+    a.download = `pliio-tissage-${tissage.id}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -396,7 +396,7 @@
   function loadJSON() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json,.pixtil';
+    input.accept = '.json,.pliio';
     input.addEventListener('change', (e) => {
       const file = e.target?.files?.[0];
       if (!file) return;
@@ -406,7 +406,7 @@
         try {
           const data = JSON.parse(ev.target?.result);
           if (data.type !== 'tissage') {
-            alert("Ce fichier n'est pas un patron de tissage Pixtil.");
+            alert("Ce fichier n'est pas un patron de tissage Pliio.");
             return;
           }
           formatKey = data.params.formatKey ?? FORMAT_DEFAULT;
