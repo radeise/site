@@ -1071,6 +1071,7 @@
     overflow: hidden;
     position: relative;
     background: var(--bg-warm, #EFEFE6);
+    height: 100%;
   }
 
   .canvas-wrap {
