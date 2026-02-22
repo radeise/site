@@ -1161,6 +1161,7 @@
     }
 
     .canvas-area {
+      flex: none;
       height: 60vh;
     }
   }
