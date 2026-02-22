@@ -676,7 +676,8 @@
   .tissage-app {
     display: flex;
     gap: 0;
-    min-height: 70vh;
+    height: calc(100vh - 10rem);
+    min-height: 600px;
     border: 1px solid var(--border, #E0E0E0);
     border-radius: 8px;
     overflow: hidden;
@@ -693,7 +694,6 @@
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
-    max-height: 70vh;
   }
 
   .control-group {
@@ -907,19 +907,19 @@
   @media (max-width: 860px) {
     .tissage-app {
       flex-direction: column;
+      height: auto;
       min-height: auto;
     }
 
     .controls {
       width: 100%;
       min-width: unset;
-      max-height: none;
       border-right: none;
       border-bottom: 1px solid var(--border, #E0E0E0);
     }
 
     .canvas-area {
-      height: 50vh;
+      height: 60vh;
     }
   }
 </style>

@@ -2,7 +2,7 @@
   let { tabs = [] } = $props();
 
   let activeTab = $state(0);
-  let collapsed = $state(false);
+  let collapsed = $state(true);
 </script>
 
 <div class="guide" class:collapsed>
