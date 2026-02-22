@@ -34,18 +34,27 @@ const { title, description = 'Créez des objets papier uniques grâce au design 
   <script>
     const burger = document.getElementById('burger');
     const nav = document.getElementById('nav');
+    const header = document.querySelector('.site-header');
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
+    const logo = header?.querySelector('.logo');
+
     function openNav() {
-      if (!nav) return;
-      nav.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:105;background:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;opacity:1;pointer-events:auto;';
+      if (!nav || !header) return;
+      header.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;background:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2rem;';
+      nav.style.cssText = 'display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;';
+      if (logo) logo.style.display = 'none';
+      if (burger) burger.style.cssText = 'display:block;position:absolute;top:1.5rem;right:1.5rem;z-index:110;background:none;border:none;cursor:pointer;width:28px;height:20px;padding:0;';
       burger?.classList.add('open');
       burger?.setAttribute('aria-expanded', 'true');
     }
 
     function closeNav() {
-      if (!nav) return;
+      if (!nav || !header) return;
+      header.style.cssText = '';
       nav.style.cssText = '';
+      if (logo) logo.style.cssText = '';
+      if (burger) burger.style.cssText = '';
       burger?.classList.remove('open');
       burger?.setAttribute('aria-expanded', 'false');
     }
