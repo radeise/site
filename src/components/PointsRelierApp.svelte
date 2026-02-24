@@ -791,8 +791,8 @@
   .par-app {
     display: flex;
     gap: 0;
-    height: calc(100vh - 10rem);
-    min-height: 600px;
+    height: calc(100vh - 6rem);
+    min-height: 800px;
     border: 1px solid var(--border, #E0E0E0);
     border-radius: 8px;
     overflow: hidden;
