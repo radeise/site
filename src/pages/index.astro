@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const tools = [
   { name: "Tissage Papier", slug: "tissage", desc: "Patron de tissage généré par bruit de Perlin. Armures textiles, export PDF.", href: "/outils/tissage", available: true, cats: ["popular","build"], img: "img-tissage" },
   { name: "Points à relier", slug: "points", desc: "Dessinez un tracé, générez les points numérotés. Export PDF A4.", href: "/outils/points-a-relier", available: true, cats: ["popular","draw"], img: "img-points" },
+  { name: "Cocotte en papier", slug: "cocotte", desc: "Cocotte personnalisée : couleurs, chiffres et messages cachés. Export PDF.", href: "/outils/cocotte", available: true, cats: ["popular","build","play"], img: "img-cocotte" },
   { name: "Coloriage Génératif", slug: "coloriage", desc: "Motifs géométriques aléatoires à colorier. Mandalas, pavages, formes.", href: "#", available: false, cats: ["draw"], img: "img-coloriage" },
   { name: "Labyrinthe", slug: "labyrinthe", desc: "Labyrinthes générés algorithmiquement. Plusieurs niveaux de difficulté.", href: "#", available: false, cats: ["play"], img: "img-labyrinthe" },
   { name: "Mots mêlés", slug: "mots", desc: "Grilles de mots cachés personnalisables. Thèmes et tailles au choix.", href: "#", available: false, cats: ["play"], img: "img-mots" },
@@ -384,6 +385,19 @@ const gallery = [
     inset: 0;
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 2px, transparent 2px);
     background-size: 20px 20px;
+  }
+
+  .img-cocotte {
+    background: linear-gradient(135deg, var(--yellow) 0%, #FF9E2C 50%, var(--red) 100%);
+  }
+  .img-cocotte::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%),
+      linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%);
+    background-size: 100% 100%;
   }
 
   .img-coloriage {

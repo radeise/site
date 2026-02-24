@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CocotteApp from '../../components/CocotteApp.svelte';
+import ToolGuide from '../../components/ToolGuide.svelte';
+
+const guideSteps = `<ol>
+  <li><strong>Personnalisez</strong> les couleurs des 4 faces, les chiffres et les messages cachés dans le panneau à gauche.</li>
+  <li><strong>Choisissez</strong> un motif décoratif (points, lignes, cercles…) pour habiller les faces colorées.</li>
+  <li><strong>Exportez en PDF</strong> — le patron est prêt à imprimer sur une feuille A4.</li>
+  <li><strong>Découpez</strong> le carré en suivant le contour extérieur.</li>
+  <li><strong>Pliez</strong> : retournez la feuille, pliez en deux dans chaque sens, puis selon les diagonales. Ramenez les 4 coins vers le centre, retournez, ramenez à nouveau les coins vers le centre.</li>
+  <li><strong>Jouez</strong> : glissez vos doigts sous les rabats et faites deviner un chiffre, puis un second — ouvrez pour révéler le message !</li>
+</ol>`;
+
+const guideMaterial = `<ul>
+  <li>Papier standard ou légèrement épais (80–120 g)</li>
+  <li>Ciseaux</li>
+  <li>Optionnel : crayons de couleur pour personnaliser davantage</li>
+</ul>
+<p style="margin-top:1rem; font-size:0.82rem; color:var(--text-soft);">
+  <strong>Raccourcis :</strong> <kbd>s</kbd> exporter le PDF · <kbd>Molette</kbd> zoomer · <kbd>Espace</kbd>+glisser déplacer
+</p>`;
+
+const guideTabs = [
+  { label: 'Comment fabriquer', content: guideSteps },
+  { label: 'Matériel recommandé', content: guideMaterial },
+];
+---
+
+<BaseLayout title="Cocotte en papier — Générateur personnalisé" description="Créez une cocotte en papier personnalisée : couleurs, chiffres et messages cachés. Exportez le patron PDF prêt à imprimer, découpez et pliez.">
+  <section class="tool-header">
+    <div class="container">
+      <h1>Cocotte en <em>papier</em></h1>
+      <p>Personnalisez les couleurs, les chiffres et les messages cachés de votre cocotte. Exportez le patron, imprimez-le et pliez — chaque cocotte est unique.</p>
+    </div>
+  </section>
+
+  <section class="tool-guide-section">
+    <div class="container">
+      <ToolGuide tabs={guideTabs} client:load />
+    </div>
+  </section>
+
+  <section class="tool-app">
+    <div class="container">
+      <CocotteApp client:load />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tool-header {
+    padding: calc(var(--nav-height) + 2rem) 0 1.5rem;
+    text-align: center;
+  }
+
+  .tool-header h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  .tool-header h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .tool-header p {
+    color: var(--text-soft);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .tool-guide-section {
+    padding: 0 0 1rem;
+  }
+
+  .tool-app {
+    padding: 0 0 3rem;
+  }
+</style>
