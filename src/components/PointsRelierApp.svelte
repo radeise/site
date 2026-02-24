@@ -1162,7 +1162,7 @@
 
     .canvas-area {
       flex: none;
-      height: 60vh;
+      height: 800px;
     }
   }
 </style>
