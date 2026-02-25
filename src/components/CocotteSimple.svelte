@@ -59,7 +59,9 @@
 
   // DOM refs
   let canvasEl;
+  let canvasArea;
   let ctx;
+  let displaySize = $state(SQUARE);
 
   // --- Seeded random ---
   function mulberry32(a) {
@@ -71,13 +73,20 @@
     };
   }
 
-  // --- Canvas size (fixed 100%) ---
+  // --- Canvas size (fit to container, always square) ---
   function applyCanvasSize() {
     if (!canvasEl || !ctx) return;
+    // Measure available width
+    if (canvasArea) {
+      const available = canvasArea.clientWidth - 32; // 2rem padding (16px * 2)
+      displaySize = Math.min(SQUARE, available);
+    }
+    // Internal resolution stays at SQUARE for quality
     canvasEl.width = Math.round(SQUARE * DPR);
     canvasEl.height = Math.round(SQUARE * DPR);
-    canvasEl.style.width = SQUARE + 'px';
-    canvasEl.style.height = SQUARE + 'px';
+    // Display size adapts to container
+    canvasEl.style.width = displaySize + 'px';
+    canvasEl.style.height = displaySize + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
@@ -365,22 +374,29 @@
   }
 
   // --- Lifecycle ---
+  function handleResize() {
+    applyCanvasSize();
+    render();
+  }
+
   onMount(() => {
     ctx = canvasEl.getContext('2d');
     applyCanvasSize();
     render();
     window.addEventListener('keydown', handleKeydown);
+    window.addEventListener('resize', handleResize);
   });
 
   onDestroy(() => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeydown);
+      window.removeEventListener('resize', handleResize);
     }
   });
 </script>
 
 <div class="simple-app">
-  <div class="canvas-area">
+  <div class="canvas-area" bind:this={canvasArea}>
     <canvas bind:this={canvasEl}></canvas>
   </div>
 
@@ -658,11 +674,6 @@
   @media (max-width: 860px) {
     .canvas-area {
       padding: 1rem;
-    }
-
-    .canvas-area canvas {
-      max-width: 100%;
-      height: auto;
     }
 
     .opt-row {
