@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CocotteSimple from '../../components/CocotteSimple.svelte';
+import ToolGuide from '../../components/ToolGuide.svelte';
+
+const guideSteps = `<ol>
+  <li><strong>Générez</strong> une cocotte en cliquant sur le bouton — couleurs, messages et motifs changent à chaque fois.</li>
+  <li><strong>Exportez en PDF</strong> — le patron est prêt à imprimer sur une feuille A4.</li>
+  <li><strong>Découpez</strong> le carré, <strong>pliez</strong> selon les lignes et jouez !</li>
+</ol>`;
+
+const guideMaterial = `<ul>
+  <li>Papier standard ou légèrement épais (80–120 g)</li>
+  <li>Ciseaux</li>
+  <li>Optionnel : crayons de couleur pour personnaliser davantage</li>
+</ul>`;
+
+const guideTabs = [
+  { label: 'Comment fabriquer', content: guideSteps },
+  { label: 'Matériel recommandé', content: guideMaterial },
+];
+---
+
+<BaseLayout title="Cocotte en papier — Mode simple" description="Générez une cocotte en papier en un clic. Exportez le patron PDF, imprimez, découpez et pliez.">
+  <section class="tool-header">
+    <div class="container">
+      <h1>Cocotte en <em>papier</em></h1>
+      <p>Générez une cocotte unique en un clic. Exportez le patron, imprimez et pliez.</p>
+    </div>
+  </section>
+
+  <section class="tool-guide-section">
+    <div class="container">
+      <ToolGuide tabs={guideTabs} client:load />
+    </div>
+  </section>
+
+  <section class="tool-app">
+    <div class="container">
+      <CocotteSimple client:load />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tool-header {
+    padding: calc(var(--nav-height) + 2rem) 0 1.5rem;
+    text-align: center;
+  }
+
+  .tool-header h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  .tool-header h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .tool-header p {
+    color: var(--text-soft);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .tool-guide-section {
+    padding: 0 0 1rem;
+  }
+
+  .tool-app {
+    padding: 0 0 3rem;
+  }
+</style>
