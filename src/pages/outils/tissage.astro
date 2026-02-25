@@ -4,8 +4,8 @@ import TissageApp from '../../components/TissageApp.svelte';
 import ToolGuide from '../../components/ToolGuide.svelte';
 
 const guideSteps = `<ol>
-  <li><strong>Générez</strong> un motif en cliquant sur l'aperçu ou en ajustant les réglages à gauche (format, épaisseur, identifiant).</li>
-  <li><strong>Explorez</strong> les variations — chaque identifiant produit un motif unique. Changez-le pour découvrir de nouveaux entrelacs.</li>
+  <li><strong>Générez</strong> un motif en cliquant sur « Générer » — chaque clic produit un entrelacs unique.</li>
+  <li><strong>Personnalisez</strong> le format, l'épaisseur et l'identifiant en ouvrant le panneau « Personnaliser ».</li>
   <li><strong>Exportez les patrons PDF</strong> — vous obtenez 4 fichiers : le patron de chaîne (à retourner après découpe), le guide de trame, un aperçu du résultat et une fiche récapitulative.</li>
   <li><strong>Imprimez</strong> sur du papier épais (160 à 200 g), type Canson ou Clairefontaine.</li>
   <li><strong>Découpez</strong> les bandes en suivant les repères imprimés, puis <strong>tissez</strong> en entrecroisant les bandes selon le motif.</li>
@@ -20,7 +20,7 @@ const guideMaterial = `<ul>
   <li>Optionnel : feuille d'or, peinture acrylique, vernis</li>
 </ul>
 <p style="margin-top:1rem; font-size:0.82rem; color:var(--text-soft);">
-  <strong>Raccourcis :</strong> <kbd>s</kbd> exporter les PDF · <kbd>clic</kbd> sur l'aperçu pour un nouveau motif
+  <strong>Raccourci :</strong> <kbd>s</kbd> exporter les PDF
 </p>`;
 
 const guideTabs = [

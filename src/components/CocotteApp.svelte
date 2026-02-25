@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
 
   // --- Constants ---
-  const SQUARE = 520; // canvas size in logical px
+  const SQUARE = 520;
   const DPR = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
 
   const DEFAULT_COLORS = ['#E63024', '#1A5CFF', '#FFD000', '#2ab54e'];
@@ -18,6 +18,33 @@
     'Ta journée sera extraordinaire',
   ];
 
+  const MESSAGE_POOL = [
+    'Tu vas vivre une belle aventure',
+    'Un ami te réserve une surprise',
+    'Tu trouveras un trésor caché',
+    'Quelqu\'un pense fort à toi',
+    'Une bonne nouvelle arrive bientôt',
+    'Tu vas éclater de rire aujourd\'hui',
+    'Un voyage se prépare pour toi',
+    'Ta journée sera extraordinaire',
+    'Tu vas apprendre quelque chose',
+    'Un cadeau t\'attend quelque part',
+    'Tu feras une belle rencontre',
+    'Le soleil brille pour toi',
+    'Ta créativité va exploser',
+    'Un rêve va se réaliser',
+    'Quelque chose de magique approche',
+    'Tu vas aider quelqu\'un aujourd\'hui',
+  ];
+
+  const patternOptions = [
+    { value: 'dots', label: 'Points' },
+    { value: 'lines', label: 'Lignes' },
+    { value: 'circles', label: 'Cercles' },
+    { value: 'crosses', label: 'Croix' },
+    { value: 'none', label: 'Aucun' },
+  ];
+
   // --- State ---
   let colors = $state([...DEFAULT_COLORS]);
   let numbers = $state([...DEFAULT_NUMBERS]);
@@ -28,27 +55,13 @@
   let seed = $state(Math.floor(Math.random() * 100000));
   let patternStyle = $state('dots');
 
-  const patternOptions = [
-    { value: 'dots', label: 'Points' },
-    { value: 'lines', label: 'Lignes' },
-    { value: 'circles', label: 'Cercles' },
-    { value: 'crosses', label: 'Croix' },
-    { value: 'none', label: 'Aucun' },
-  ];
-
-  // Zoom / Pan
-  let zoom = $state(1);
-  let panX = $state(0);
-  let panY = $state(0);
-  let spaceDown = false;
-  let isPanning = false;
-  let panMX = 0, panMY = 0, panSX = 0, panSY = 0;
+  let showOptions = $state(false);
 
   // DOM refs
   let canvasEl;
-  let canvasWrap;
   let canvasArea;
   let ctx;
+  let displaySize = $state(SQUARE);
 
   // --- Seeded random ---
   function mulberry32(a) {
@@ -60,89 +73,18 @@
     };
   }
 
-  // --- Canvas size & transform ---
+  // --- Canvas size (fit to container, always square) ---
   function applyCanvasSize() {
     if (!canvasEl || !ctx) return;
-    const s = SQUARE * zoom;
-    canvasEl.width = Math.round(s * DPR);
-    canvasEl.height = Math.round(s * DPR);
-    canvasEl.style.width = Math.round(s) + 'px';
-    canvasEl.style.height = Math.round(s) + 'px';
-    ctx.setTransform(s * DPR / SQUARE, 0, 0, s * DPR / SQUARE, 0, 0);
-  }
-
-  function updateTransform() {
-    if (!canvasWrap) return;
-    canvasWrap.style.transform = `translate(${panX}px,${panY}px)`;
-  }
-
-  function centerCanvas() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const s = SQUARE * zoom;
-    panX = Math.max(0, (ar.width - s) / 2);
-    panY = Math.max(0, (ar.height - s) / 2);
-    updateTransform();
-  }
-
-  function clampPan() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const s = SQUARE * zoom;
-    const minX = Math.min(0, ar.width - s - 20);
-    const maxX = Math.max(ar.width - s, 20);
-    const minY = Math.min(0, ar.height - s - 20);
-    const maxY = Math.max(ar.height - s, 20);
-    panX = Math.max(minX, Math.min(maxX, panX));
-    panY = Math.max(minY, Math.min(maxY, panY));
-  }
-
-  // --- Zoom ---
-  function zoomAt(newZoom, pivotCX, pivotCY) {
-    newZoom = Math.max(0.5, Math.min(4, Math.round(newZoom * 20) / 20));
-    if (newZoom === zoom) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const ax = pivotCX - ar.left, ay = pivotCY - ar.top;
-    const lx = (ax - panX) / zoom, ly = (ay - panY) / zoom;
-    zoom = newZoom;
-    applyCanvasSize();
-    panX = ax - lx * zoom;
-    panY = ay - ly * zoom;
-    clampPan();
-    updateTransform();
-    render();
-  }
-
-  function zoomCenter(delta) {
-    const ar = canvasArea.getBoundingClientRect();
-    zoomAt(zoom + delta, ar.left + ar.width / 2, ar.top + ar.height / 2);
-  }
-
-  function resetZoom() {
-    zoom = 1;
-    applyCanvasSize();
-    centerCanvas();
-    render();
-  }
-
-  // --- Pan ---
-  function startPan(cx, cy) {
-    isPanning = true;
-    panMX = cx; panMY = cy;
-    panSX = panX; panSY = panY;
-    if (canvasEl) canvasEl.style.cursor = 'grabbing';
-  }
-
-  function doPan(cx, cy) {
-    panX = panSX + (cx - panMX);
-    panY = panSY + (cy - panMY);
-    clampPan();
-    updateTransform();
-  }
-
-  function endPan() {
-    isPanning = false;
-    if (canvasEl) canvasEl.style.cursor = spaceDown ? 'grab' : 'default';
+    if (canvasArea) {
+      const available = canvasArea.clientWidth - 32;
+      displaySize = Math.min(SQUARE, available);
+    }
+    canvasEl.width = Math.round(SQUARE * DPR);
+    canvasEl.height = Math.round(SQUARE * DPR);
+    canvasEl.style.width = displaySize + 'px';
+    canvasEl.style.height = displaySize + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
   // --- Drawing helpers ---
@@ -178,13 +120,9 @@
       const angle = rng() * Math.PI;
       const cos = Math.cos(angle), sin = Math.sin(angle);
       for (let i = -radius * 2; i < radius * 2; i += step) {
-        const x1 = cx + cos * i - sin * radius * 2;
-        const y1 = cy + sin * i + cos * radius * 2;
-        const x2 = cx + cos * i + sin * radius * 2;
-        const y2 = cy + sin * i - cos * radius * 2;
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(cx + cos * i - sin * radius * 2, cy + sin * i + cos * radius * 2);
+        ctx.lineTo(cx + cos * i + sin * radius * 2, cy + sin * i - cos * radius * 2);
         ctx.stroke();
       }
     } else if (style === 'circles') {
@@ -250,41 +188,28 @@
     const rng = mulberry32(seed);
     const S = SQUARE;
     const half = S / 2;
-    const pad = 12;
 
     ctx.clearRect(0, 0, S, S);
-
-    // White background
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, S, S);
 
-    // 8 triangles: 4 outer (color), 4 inner (messages)
-    // Layout: square divided into 4 quadrants, each quadrant has 2 triangles
-    // Outer triangles point to edges, inner triangles point to center
-
     const quadrants = [
-      { ox: 0, oy: 0, ci: 0 },      // top-left
-      { ox: half, oy: 0, ci: 1 },    // top-right
-      { ox: 0, oy: half, ci: 2 },    // bottom-left
-      { ox: half, oy: half, ci: 3 }, // bottom-right
+      { ox: 0, oy: 0, ci: 0 },
+      { ox: half, oy: 0, ci: 1 },
+      { ox: 0, oy: half, ci: 2 },
+      { ox: half, oy: half, ci: 3 },
     ];
-
-    // Each quadrant: square from (ox,oy) to (ox+half, oy+half)
-    // Diagonal from corner to center divides it into outer triangle and inner triangle
-    // Outer triangle: the one touching the outer edge
-    // Inner triangle: the one touching the center
 
     for (let q = 0; q < 4; q++) {
       const { ox, oy, ci } = quadrants[q];
       const col = colors[ci];
 
-      // Corners of the quadrant
       const outerCorner = [ox + (q % 2 === 0 ? 0 : half), oy + (q < 2 ? 0 : half)];
       const centerCorner = [ox + (q % 2 === 0 ? half : 0), oy + (q < 2 ? half : 0)];
       const adj1 = [ox + (q % 2 === 0 ? half : 0), oy + (q < 2 ? 0 : half)];
       const adj2 = [ox + (q % 2 === 0 ? 0 : half), oy + (q < 2 ? half : 0)];
 
-      // Outer triangle: outerCorner, adj1, adj2
+      // Outer triangle (colored)
       ctx.fillStyle = col;
       ctx.beginPath();
       ctx.moveTo(outerCorner[0], outerCorner[1]);
@@ -293,33 +218,24 @@
       ctx.closePath();
       ctx.fill();
 
-      // Pattern on outer triangle
       const ocx = (outerCorner[0] + adj1[0] + adj2[0]) / 3;
       const ocy = (outerCorner[1] + adj1[1] + adj2[1]) / 3;
       drawPattern(rng, ocx, ocy, half * 0.38, col, patternStyle);
 
-      // Number on outer triangle
+      // Numbers
       if (showNumbers) {
-        const ni1 = q * 2;
-        const ni2 = q * 2 + 1;
+        const ni1 = q * 2, ni2 = q * 2 + 1;
         const fs = Math.round(16 * fontScale);
         ctx.font = `bold ${fs}px "Instrument Sans", system-ui, sans-serif`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-
-        // Position numbers: split the outer triangle into two halves
         const midAdj = [(adj1[0] + adj2[0]) / 2, (adj1[1] + adj2[1]) / 2];
-        const n1x = (outerCorner[0] * 2 + adj1[0] + midAdj[0]) / 4;
-        const n1y = (outerCorner[1] * 2 + adj1[1] + midAdj[1]) / 4;
-        const n2x = (outerCorner[0] * 2 + adj2[0] + midAdj[0]) / 4;
-        const n2y = (outerCorner[1] * 2 + adj2[1] + midAdj[1]) / 4;
-
-        ctx.fillText(numbers[ni1], n1x, n1y);
-        ctx.fillText(numbers[ni2], n2x, n2y);
+        ctx.fillText(numbers[ni1], (outerCorner[0] * 2 + adj1[0] + midAdj[0]) / 4, (outerCorner[1] * 2 + adj1[1] + midAdj[1]) / 4);
+        ctx.fillText(numbers[ni2], (outerCorner[0] * 2 + adj2[0] + midAdj[0]) / 4, (outerCorner[1] * 2 + adj2[1] + midAdj[1]) / 4);
       }
 
-      // Inner triangle: centerCorner, adj1, adj2 — light background for messages
+      // Inner triangle (messages)
       ctx.fillStyle = '#fafafa';
       ctx.beginPath();
       ctx.moveTo(centerCorner[0], centerCorner[1]);
@@ -328,39 +244,22 @@
       ctx.closePath();
       ctx.fill();
 
-      // Messages inside inner triangle
-      const mi1 = q * 2;
-      const mi2 = q * 2 + 1;
+      const mi1 = q * 2, mi2 = q * 2 + 1;
       const fs2 = Math.round(9 * fontScale);
-
-      // Split inner triangle into two halves along center diagonal
       const midAdj2 = [(adj1[0] + adj2[0]) / 2, (adj1[1] + adj2[1]) / 2];
-
-      // Message 1 — in first half
-      const m1cx = (centerCorner[0] * 2 + adj1[0] + midAdj2[0]) / 4;
-      const m1cy = (centerCorner[1] * 2 + adj1[1] + midAdj2[1]) / 4;
-      drawMessage(messages[mi1], m1cx, m1cy, half * 0.28, fs2, col);
-
-      // Message 2 — in second half
-      const m2cx = (centerCorner[0] * 2 + adj2[0] + midAdj2[0]) / 4;
-      const m2cy = (centerCorner[1] * 2 + adj2[1] + midAdj2[1]) / 4;
-      drawMessage(messages[mi2], m2cx, m2cy, half * 0.28, fs2, col);
+      drawMessage(messages[mi1], (centerCorner[0] * 2 + adj1[0] + midAdj2[0]) / 4, (centerCorner[1] * 2 + adj1[1] + midAdj2[1]) / 4, half * 0.28, fs2);
+      drawMessage(messages[mi2], (centerCorner[0] * 2 + adj2[0] + midAdj2[0]) / 4, (centerCorner[1] * 2 + adj2[1] + midAdj2[1]) / 4, half * 0.28, fs2);
     }
 
-    // Grid lines
+    // Structure lines
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1.5;
-
-    // Outer border
     ctx.strokeRect(1, 1, S - 2, S - 2);
-
-    // Cross lines (horizontal + vertical center)
     ctx.beginPath();
     ctx.moveTo(half, 0); ctx.lineTo(half, S);
     ctx.moveTo(0, half); ctx.lineTo(S, half);
     ctx.stroke();
 
-    // Diagonals
     ctx.lineWidth = 0.8;
     ctx.setLineDash([]);
     ctx.beginPath();
@@ -368,18 +267,12 @@
     ctx.moveTo(S, 0); ctx.lineTo(0, S);
     ctx.stroke();
 
-    // Fold lines (dashed)
     if (showFold) {
       ctx.strokeStyle = '#999';
       ctx.lineWidth = 0.6;
       ctx.setLineDash([6, 4]);
-      // Quarter lines
-      const q = half / 2;
-      // No extra folds needed — the main folds are the cross + diagonals
-      // Add small fold marks at corners
       const mark = 15;
       ctx.beginPath();
-      // Corner fold indicators
       for (const [x, y] of [[0,0],[S,0],[0,S],[S,S]]) {
         ctx.moveTo(x === 0 ? 0 : S, y === 0 ? mark : S - mark);
         ctx.lineTo(x === 0 ? mark : S - mark, y === 0 ? 0 : S);
@@ -389,7 +282,7 @@
     }
   }
 
-  function drawMessage(text, cx, cy, maxW, fs, accentColor) {
+  function drawMessage(text, cx, cy, maxW, fs) {
     const lines = wrapText(text, maxW, fs);
     ctx.font = `${fs}px "Instrument Sans", system-ui, sans-serif`;
     ctx.fillStyle = '#333';
@@ -405,58 +298,47 @@
   // --- Actions ---
   function regenerate() {
     seed = Math.floor(Math.random() * 100000);
+    const rng = mulberry32(seed);
+    const hues = [0, 60, 120, 200, 270, 330];
+    for (let i = 0; i < 4; i++) {
+      const h = hues[Math.floor(rng() * hues.length)];
+      const s = 65 + Math.floor(rng() * 25);
+      const l = 45 + Math.floor(rng() * 15);
+      colors[i] = hslToHex(h + Math.floor(rng() * 30 - 15), s, l);
+    }
+    const shuffled = [...MESSAGE_POOL].sort(() => rng() - 0.5);
+    messages = shuffled.slice(0, 8);
+    patternStyle = patternOptions[Math.floor(rng() * patternOptions.length)].value;
     render();
   }
 
-  function randomizeMessages() {
-    const pool = [
-      'Tu vas vivre une belle aventure',
-      'Un ami te réserve une surprise',
-      'Tu trouveras un trésor caché',
-      'Quelqu\'un pense fort à toi',
-      'Une bonne nouvelle arrive bientôt',
-      'Tu vas éclater de rire aujourd\'hui',
-      'Un voyage se prépare pour toi',
-      'Ta journée sera extraordinaire',
-      'Tu vas apprendre quelque chose',
-      'Un cadeau t\'attend quelque part',
-      'Tu feras une belle rencontre',
-      'Le soleil brille pour toi',
-      'Ta créativité va exploser',
-      'Un rêve va se réaliser',
-      'Quelque chose de magique approche',
-      'Tu vas aider quelqu\'un aujourd\'hui',
-    ];
-    const rng = mulberry32(Date.now());
-    const shuffled = pool.sort(() => rng() - 0.5);
-    messages = shuffled.slice(0, 8);
-    render();
+  function hslToHex(h, s, l) {
+    h = ((h % 360) + 360) % 360;
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   }
 
   // --- Export PDF ---
   async function exportPDF() {
     const { jsPDF } = await import('jspdf');
-
-    // A4 with the cocotte centered (the cocotte is a square)
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = 210, pageH = 297;
-    const size = 170; // cocotte square size in mm
+    const size = 170;
     const offX = (pageW - size) / 2;
     const offY = (pageH - size) / 2;
 
-    // Render at high res
     const hiRes = document.createElement('canvas');
     const hiCtx = hiRes.getContext('2d');
     const hiS = 2000;
     hiRes.width = hiS;
     hiRes.height = hiS;
 
-    // Save current state, render to temp canvas
     const origCtx = ctx;
-    const origEl = canvasEl;
     ctx = hiCtx;
-    const origSQUARE = SQUARE;
-    // Scale hiCtx
     hiCtx.setTransform(hiS / SQUARE, 0, 0, hiS / SQUARE, 0, 0);
     render();
     ctx = origCtx;
@@ -464,11 +346,10 @@
     const imgData = hiRes.toDataURL('image/jpeg', 0.95);
     pdf.addImage(imgData, 'JPEG', offX, offY, size, size);
 
-    // Fold instructions text
     pdf.setFontSize(8);
     pdf.setTextColor(150);
     pdf.text('Cocotte en papier — pliio.fr', offX, offY + size + 8);
-    pdf.text('Découpez le carré, pliez selon les lignes, inscrivez vos messages.', offX, offY + size + 12);
+    pdf.text('Découpez le carré, pliez selon les lignes.', offX, offY + size + 12);
 
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
@@ -479,370 +360,148 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    // Re-render main canvas
-    applyCanvasSize();
-    render();
   }
 
-  // --- Event handlers ---
+  // --- Keyboard shortcut ---
   function handleKeydown(e) {
-    if (e.code === 'Space' && !e.repeat && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      e.preventDefault();
-      spaceDown = true;
-      if (canvasEl) canvasEl.style.cursor = 'grab';
-    }
     if (e.key === 's' && !e.ctrlKey && !e.metaKey && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
       exportPDF();
     }
   }
 
-  function handleKeyup(e) {
-    if (e.code === 'Space') {
-      spaceDown = false;
-      isPanning = false;
-      if (canvasEl) canvasEl.style.cursor = 'default';
-    }
-  }
-
-  function handleWheel(e) {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-    zoomAt(zoom + delta, e.clientX, e.clientY);
-  }
-
-  function handleAreaMousedown(e) {
-    if (e.button === 1 || (e.button === 0 && spaceDown)) {
-      e.preventDefault();
-      startPan(e.clientX, e.clientY);
-    }
-  }
-
-  function handleAreaMousemove(e) {
-    if (isPanning) doPan(e.clientX, e.clientY);
-  }
-
-  function handleAreaMouseup() {
-    if (isPanning) endPan();
-  }
-
   // --- Lifecycle ---
+  function handleResize() {
+    applyCanvasSize();
+    render();
+  }
+
   onMount(() => {
     ctx = canvasEl.getContext('2d');
     applyCanvasSize();
-    centerCanvas();
     render();
-
     window.addEventListener('keydown', handleKeydown);
-    window.addEventListener('keyup', handleKeyup);
-    window.addEventListener('resize', () => { clampPan(); updateTransform(); });
+    window.addEventListener('resize', handleResize);
   });
 
   onDestroy(() => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeydown);
-      window.removeEventListener('keyup', handleKeyup);
+      window.removeEventListener('resize', handleResize);
     }
   });
 </script>
 
-<div class="cocotte-app">
-  <div class="controls">
-    <div class="control-group">
-      <h3>Couleurs</h3>
-      <div class="color-grid">
-        {#each colors as col, i}
-          <label class="color-label">
-            <span>Face {i + 1}</span>
-            <input type="color" bind:value={colors[i]} oninput={render} />
+<div class="simple-app">
+  <div class="canvas-area" bind:this={canvasArea}>
+    <canvas bind:this={canvasEl}></canvas>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick={regenerate}>Générer</button>
+    <button class="btn btn-primary" onclick={exportPDF}>Exporter PDF</button>
+  </div>
+
+  <button class="toggle-options" onclick={() => { showOptions = !showOptions }}>
+    <span class="toggle-arrow" class:open={showOptions}>&#9654;</span>
+    Personnaliser
+  </button>
+
+  {#if showOptions}
+    <div class="options-panel">
+      <div class="opt-row">
+        <div class="opt-group">
+          <h3>Couleurs</h3>
+          <div class="color-grid">
+            {#each colors as col, i}
+              <label class="color-label">
+                <input type="color" bind:value={colors[i]} oninput={render} />
+                <span>Face {i + 1}</span>
+              </label>
+            {/each}
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <h3>Chiffres</h3>
+          <div class="num-grid">
+            {#each numbers as num, i}
+              <input type="text" maxlength="3" bind:value={numbers[i]} oninput={render} class="num-input" />
+            {/each}
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <h3>Style</h3>
+          <label>
+            Motif
+            <select bind:value={patternStyle} onchange={render}>
+              {#each patternOptions as opt}
+                <option value={opt.value}>{opt.label}</option>
+              {/each}
+            </select>
           </label>
-        {/each}
+          <label>
+            Taille texte : {fontScale.toFixed(1)}x
+            <input type="range" min="0.6" max="1.6" step="0.1" bind:value={fontScale} oninput={render} />
+          </label>
+        </div>
+      </div>
+
+      <div class="opt-row">
+        <div class="opt-group opt-messages">
+          <h3>Messages</h3>
+          <div class="msg-grid">
+            {#each messages as msg, i}
+              <input type="text" bind:value={messages[i]} oninput={render} class="msg-input" placeholder="Message {i + 1}" />
+            {/each}
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="control-group">
-      <h3>Chiffres</h3>
-      <div class="num-grid">
-        {#each numbers as num, i}
-          <input type="text" maxlength="3" bind:value={numbers[i]} oninput={render} class="num-input" />
-        {/each}
-      </div>
-    </div>
-
-    <div class="control-group">
-      <h3>Messages</h3>
-      <div class="msg-list">
-        {#each messages as msg, i}
-          <input type="text" bind:value={messages[i]} oninput={render} class="msg-input" placeholder="Message {i + 1}" />
-        {/each}
-      </div>
-      <button class="btn btn-outline full-width" onclick={randomizeMessages} style="margin-top:0.5rem">Messages aléatoires</button>
-    </div>
-
-    <div class="control-group">
-      <h3>Options</h3>
-      <label>
-        Motif décoratif
-        <select bind:value={patternStyle} onchange={render}>
-          {#each patternOptions as opt}
-            <option value={opt.value}>{opt.label}</option>
-          {/each}
-        </select>
-      </label>
-      <label>
-        Taille texte : {fontScale.toFixed(1)}x
-        <input type="range" min="0.6" max="1.6" step="0.1" bind:value={fontScale} oninput={render} />
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" bind:checked={showFold} onchange={render} />
-        Repères de pliage
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" bind:checked={showNumbers} onchange={render} />
-        Afficher les chiffres
-      </label>
-    </div>
-
-    <div class="control-group actions">
-      <button class="btn btn-primary full-width" onclick={exportPDF}>Exporter PDF (s)</button>
-      <button class="btn btn-outline full-width" onclick={regenerate}>Nouveau motif</button>
-    </div>
-  </div>
-
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="canvas-area" bind:this={canvasArea}
-    onmousedown={handleAreaMousedown}
-    onmousemove={handleAreaMousemove}
-    onmouseup={handleAreaMouseup}
-    onwheel={handleWheel}>
-    <div class="canvas-wrap" bind:this={canvasWrap}>
-      <canvas bind:this={canvasEl}></canvas>
-    </div>
-    <div class="zoom-controls">
-      <button class="zoom-btn" onclick={() => zoomCenter(-0.25)}>−</button>
-      <span class="zoom-label">{Math.round(zoom * 100)}%</span>
-      <button class="zoom-btn" onclick={() => zoomCenter(0.25)}>+</button>
-      <button class="zoom-btn zoom-reset" onclick={resetZoom}>↺</button>
-    </div>
-  </div>
+  {/if}
 </div>
 
 <style>
-  .cocotte-app {
-    display: flex;
-    gap: 0;
-    height: calc(100vh - 6rem);
-    min-height: 800px;
+  .simple-app {
     border: 1px solid var(--border, #E0E0E0);
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
   }
 
-  .controls {
-    width: 280px;
-    min-width: 280px;
-    background: #fff;
-    border-right: 1px solid var(--border, #E0E0E0);
-    padding: 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    overflow-y: auto;
-  }
-
-  .control-group {
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 6px;
-    padding: 0.85rem;
-    background: #fff;
-  }
-
-  .control-group h3 {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--text-soft, #555);
-    margin-bottom: 0.6rem;
-    font-family: var(--sans, system-ui, sans-serif);
-    font-weight: 600;
-  }
-
-  .color-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.4rem;
-  }
-
-  .color-label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    color: var(--text, #111);
-  }
-
-  .color-label input[type="color"] {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 4px;
-    padding: 1px;
-    cursor: pointer;
-  }
-
-  .num-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.3rem;
-  }
-
-  .num-input {
-    width: 100%;
-    text-align: center;
-    padding: 0.3rem;
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 3px;
-    font-size: 0.85rem;
-    font-family: monospace;
-  }
-
-  .msg-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .msg-input {
-    width: 100%;
-    padding: 0.3rem 0.5rem;
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 3px;
-    font-size: 0.8rem;
-  }
-
-  label {
-    display: block;
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-    color: var(--text, #111);
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
-
-  .checkbox-label input[type="checkbox"] {
-    accent-color: var(--blue, #1A5CFF);
-  }
-
-  input[type="range"] {
-    width: 100%;
-    margin-top: 0.2rem;
-    accent-color: var(--blue, #1A5CFF);
-  }
-
-  select {
-    width: 100%;
-    padding: 0.4rem;
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 3px;
-    font-size: 0.85rem;
-    background: white;
-    margin-top: 0.2rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin-top: auto;
-  }
-
-  .full-width {
-    width: 100%;
-    justify-content: center;
-  }
-
   .canvas-area {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    background: var(--bg-warm, #EFEFE6);
-    height: 100%;
-  }
-
-  .canvas-wrap {
-    position: absolute;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-    transform-origin: 0 0;
-    will-change: transform;
-    cursor: default;
-  }
-
-  .canvas-wrap canvas {
-    display: block;
-  }
-
-  .zoom-controls {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
     display: flex;
-    gap: 4px;
-    z-index: 10;
-  }
-
-  .zoom-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border, #E0E0E0);
-    background: #fff;
-    color: var(--text, #111);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    align-items: center;
+    padding: 2rem;
+    background: var(--bg-warm, #EFEFE6);
   }
 
-  .zoom-btn:hover {
-    border-color: var(--blue, #1A5CFF);
-    color: var(--blue, #1A5CFF);
+  .canvas-area canvas {
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
   }
 
-  .zoom-reset {
-    font-size: 12px;
-  }
-
-  .zoom-label {
-    font-family: monospace;
-    font-size: 0.7rem;
-    color: var(--text-soft, #555);
-    align-self: center;
-    min-width: 36px;
-    text-align: center;
+  /* --- Action bar --- */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--border, #E0E0E0);
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
+    padding: 0.75rem 2rem;
     border: 1.5px solid var(--text, #111);
     border-radius: 3px;
     font-family: var(--sans, system-ui, sans-serif);
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -862,36 +521,174 @@
     background: var(--blue, #1A5CFF);
     border-color: var(--blue, #1A5CFF);
     color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(26, 92, 255, 0.2);
   }
 
-  .btn-outline {
-    background: transparent;
-    border: 1.5px solid var(--border, #E0E0E0);
+  /* --- Toggle options --- */
+  .toggle-options {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border, #E0E0E0);
+    cursor: pointer;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft, #555);
+    transition: color 0.2s;
+  }
+
+  .toggle-options:hover {
     color: var(--text, #111);
   }
 
-  .btn-outline:hover {
-    border-color: var(--blue, #1A5CFF);
-    color: var(--blue, #1A5CFF);
+  .toggle-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.25s ease;
+    display: inline-block;
+  }
+
+  .toggle-arrow.open {
+    transform: rotate(90deg);
+  }
+
+  /* --- Options panel --- */
+  .options-panel {
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border, #E0E0E0);
+    background: var(--bg-warm, #EFEFE6);
+  }
+
+  .opt-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .opt-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .opt-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .opt-group h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-soft, #555);
+    margin-bottom: 0.6rem;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-weight: 600;
+  }
+
+  .color-grid {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .color-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--text, #111);
+  }
+
+  .color-label input[type="color"] {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 4px;
+    padding: 1px;
+    cursor: pointer;
+  }
+
+  .num-grid {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .num-input {
+    width: 40px;
+    text-align: center;
+    padding: 0.35rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    background: #fff;
+  }
+
+  .msg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .msg-input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
+    font-size: 0.8rem;
+    background: #fff;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: var(--text, #111);
+  }
+
+  select {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.2rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    margin-top: 0.2rem;
+    accent-color: var(--blue, #1A5CFF);
   }
 
   @media (max-width: 860px) {
-    .cocotte-app {
-      flex-direction: column;
-      height: auto;
-      min-height: auto;
-    }
-
-    .controls {
-      width: 100%;
-      min-width: unset;
-      border-right: none;
-      border-bottom: 1px solid var(--border, #E0E0E0);
-    }
-
     .canvas-area {
-      flex: none;
-      height: 800px;
+      padding: 1rem;
+    }
+
+    .opt-row {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .action-bar {
+      padding: 1rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.78rem;
     }
   }
 </style>

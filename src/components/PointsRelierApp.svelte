@@ -17,17 +17,6 @@
   let didMove = false;
   let mouseOnCanvas = false;
 
-  // Zoom / Pan
-  let zoom = $state(1);
-  let panX = $state(0);
-  let panY = $state(0);
-  let spaceDown = false;
-  let isPanning = false;
-  let panMX = 0, panMY = 0, panSX = 0, panSY = 0;
-
-  // Touch
-  let touchMode = null, lastTouchDist = 0, lastTouchMid = { x: 0, y: 0 };
-
   // Settings
   let decorWidth = $state(3);
   let showPoints = $state(true);
@@ -44,7 +33,6 @@
 
   // DOM refs
   let canvasEl;
-  let canvasWrap;
   let canvasArea;
   let brushEl;
   let ctx;
@@ -52,43 +40,27 @@
   const DPR = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
   const CW = BASE_W, CH = BASE_H;
 
-  // --- Canvas size & transform ---
+  let displayW = $state(BASE_W);
+  let displayH = $state(BASE_H);
+  let showOptions = $state(false);
+
+  // --- Canvas size (fit to container, maintain aspect ratio) ---
   function applyCanvasSize() {
     if (!canvasEl || !ctx) return;
-    const pw = Math.round(BASE_W * zoom * DPR);
-    const ph = Math.round(BASE_H * zoom * DPR);
-    canvasEl.width = pw;
-    canvasEl.height = ph;
-    canvasEl.style.width = Math.round(BASE_W * zoom) + 'px';
-    canvasEl.style.height = Math.round(BASE_H * zoom) + 'px';
-    const sf = pw / CW;
-    ctx.setTransform(sf, 0, 0, sf, 0, 0);
-  }
-
-  function updateTransform() {
-    if (!canvasWrap) return;
-    canvasWrap.style.transform = `translate(${panX}px,${panY}px)`;
-  }
-
-  function centerCanvas() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const cw = BASE_W * zoom, ch = BASE_H * zoom;
-    panX = Math.max(0, (ar.width - cw) / 2);
-    panY = Math.max(0, (ar.height - ch) / 2);
-    updateTransform();
-  }
-
-  function clampPan() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const cw = BASE_W * zoom, ch = BASE_H * zoom;
-    const minX = Math.min(0, ar.width - cw - 20);
-    const maxX = Math.max(ar.width - cw, 20);
-    const minY = Math.min(0, ar.height - ch - 20);
-    const maxY = Math.max(ar.height - ch, 20);
-    panX = Math.max(minX, Math.min(maxX, panX));
-    panY = Math.max(minY, Math.min(maxY, panY));
+    if (canvasArea) {
+      const available = canvasArea.clientWidth - 32;
+      const scale = Math.min(1, available / BASE_W);
+      displayW = Math.round(BASE_W * scale);
+      displayH = Math.round(BASE_H * scale);
+    } else {
+      displayW = BASE_W;
+      displayH = BASE_H;
+    }
+    canvasEl.width = Math.round(BASE_W * DPR);
+    canvasEl.height = Math.round(BASE_H * DPR);
+    canvasEl.style.width = displayW + 'px';
+    canvasEl.style.height = displayH + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
   // --- Helpers ---
@@ -100,85 +72,33 @@
     return { x: (cx - r.left) / r.width, y: (cy - r.top) / r.height };
   }
 
-  // --- Zoom ---
-  function zoomAt(newZoom, pivotCX, pivotCY) {
-    newZoom = Math.max(0.5, Math.min(4, Math.round(newZoom * 20) / 20));
-    if (newZoom === zoom) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const ax = pivotCX - ar.left, ay = pivotCY - ar.top;
-    const lx = (ax - panX) / zoom, ly = (ay - panY) / zoom;
-    zoom = newZoom;
-    applyCanvasSize();
-    panX = ax - lx * zoom;
-    panY = ay - ly * zoom;
-    clampPan();
-    updateTransform();
-    render();
-  }
-
-  function zoomCenter(delta) {
-    const ar = canvasArea.getBoundingClientRect();
-    zoomAt(zoom + delta, ar.left + ar.width / 2, ar.top + ar.height / 2);
-  }
-
-  function resetZoom() {
-    zoom = 1;
-    applyCanvasSize();
-    centerCanvas();
-    render();
-  }
-
-  // --- Pan ---
-  function startPan(cx, cy) {
-    isPanning = true;
-    panMX = cx; panMY = cy;
-    panSX = panX; panSY = panY;
-    updateCursor();
-  }
-
-  function doPan(cx, cy) {
-    panX = panSX + (cx - panMX);
-    panY = panSY + (cy - panMY);
-    clampPan();
-    updateTransform();
-  }
-
-  function endPan() {
-    isPanning = false;
-    updateCursor();
+  // --- Brush cursor ---
+  function updateBrush(e) {
+    if (!brushEl) return;
+    if (tool !== 'decor' || !mouseOnCanvas) {
+      brushEl.classList.remove('visible');
+      return;
+    }
+    canvasEl.style.cursor = 'none';
+    const bSize = decorWidth * (displayW / BASE_W);
+    brushEl.style.width = bSize + 'px';
+    brushEl.style.height = bSize + 'px';
+    brushEl.style.left = e.clientX + 'px';
+    brushEl.style.top = e.clientY + 'px';
+    brushEl.classList.add('visible');
   }
 
   function updateCursor() {
     if (!canvasEl) return;
-    if (spaceDown || isPanning) {
-      canvasEl.style.cursor = isPanning ? 'grabbing' : 'grab';
-      if (brushEl) brushEl.classList.remove('visible');
-    } else if (tool === 'decor' && mouseOnCanvas) {
+    if (tool === 'decor' && mouseOnCanvas) {
       canvasEl.style.cursor = 'none';
     } else {
       canvasEl.style.cursor = 'crosshair';
     }
   }
 
-  // --- Brush cursor ---
-  function updateBrush(e) {
-    if (!brushEl) return;
-    if (tool !== 'decor' || !mouseOnCanvas || spaceDown || isPanning) {
-      brushEl.classList.remove('visible');
-      return;
-    }
-    canvasEl.style.cursor = 'none';
-    const px = decorWidth * zoom;
-    brushEl.style.width = px + 'px';
-    brushEl.style.height = px + 'px';
-    brushEl.style.left = e.clientX + 'px';
-    brushEl.style.top = e.clientY + 'px';
-    brushEl.classList.add('visible');
-  }
-
   // --- Drawing ---
   function startDraw(p) {
-    if (spaceDown || isPanning) return;
     if (!inArea(p.x, p.y)) return;
     isDrawing = true;
     didMove = false;
@@ -191,7 +111,8 @@
     if (e) updateBrush(e);
     if (!isDrawing || !currentStroke) return;
     if (!inArea(p.x, p.y)) return;
-    if (dd(p, lastPt) >= 3 / (BASE_W * zoom)) {
+    const minDist = 3 / (BASE_W);
+    if (dd(p, lastPt) >= minDist) {
       didMove = true;
       currentStroke = [...currentStroke, { x: p.x, y: p.y }];
       lastPt = { x: p.x, y: p.y };
@@ -382,7 +303,7 @@
         statPoints = pts.length;
       }
     } else {
-      statPoints = showPoints ? 0 : 0;
+      statPoints = 0;
     }
 
     if (!rawStrokes.length && !decorStrokes.length && !currentStroke) {
@@ -544,53 +465,27 @@
 
   // --- Event handlers ---
   function handleKeydown(e) {
-    if (e.code === 'Space' && !e.repeat && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      e.preventDefault();
-      spaceDown = true;
-      updateCursor();
-    }
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
       e.preventDefault();
       undo();
     }
   }
 
-  function handleKeyup(e) {
-    if (e.code === 'Space') {
-      spaceDown = false;
-      isPanning = false;
-      updateCursor();
-    }
-  }
-
-  function handleWheel(e) {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-    zoomAt(zoom + delta, e.clientX, e.clientY);
-  }
-
-  function handleAreaMousedown(e) {
-    if (e.button === 1 || (e.button === 0 && spaceDown)) {
-      e.preventDefault();
-      startPan(e.clientX, e.clientY);
-      return;
-    }
+  function handleMousedown(e) {
     if (e.button === 0 && e.target === canvasEl) {
       startDraw(clientToNorm(e.clientX, e.clientY));
     }
   }
 
-  function handleAreaMousemove(e) {
-    if (isPanning) { doPan(e.clientX, e.clientY); return; }
+  function handleMousemove(e) {
     if (e.target === canvasEl || mouseOnCanvas) {
       updateBrush(e);
       moveDraw(clientToNorm(e.clientX, e.clientY), e);
     }
   }
 
-  function handleAreaMouseup(e) {
-    if (isPanning && (e.button === 1 || (e.button === 0 && spaceDown))) { endPan(); return; }
-    if (e.button === 0 && !isPanning) endDraw();
+  function handleMouseup(e) {
+    if (e.button === 0) endDraw();
   }
 
   function handleCanvasEnter(e) { mouseOnCanvas = true; updateBrush(e); updateCursor(); }
@@ -598,267 +493,229 @@
     mouseOnCanvas = false;
     if (brushEl) brushEl.classList.remove('visible');
     updateCursor();
-    if (isDrawing && !isPanning) endDraw();
+    if (isDrawing) endDraw();
   }
 
   function handleTouchStart(e) {
     e.preventDefault();
-    if (e.touches.length === 1 && !touchMode) {
-      touchMode = 'draw';
+    if (e.touches.length === 1) {
       const t = e.touches[0];
       startDraw(clientToNorm(t.clientX, t.clientY));
-    } else if (e.touches.length === 2) {
-      touchMode = 'pinch';
-      if (isDrawing) { currentStroke = null; isDrawing = false; render(); }
-      const [a, b] = [e.touches[0], e.touches[1]];
-      lastTouchDist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-      lastTouchMid = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
-      panSX = panX; panSY = panY; panMX = lastTouchMid.x; panMY = lastTouchMid.y;
     }
   }
 
   function handleTouchMove(e) {
     e.preventDefault();
-    if (touchMode === 'draw' && e.touches.length === 1) {
+    if (e.touches.length === 1 && isDrawing) {
       const t = e.touches[0];
       moveDraw(clientToNorm(t.clientX, t.clientY));
-    } else if (touchMode === 'pinch' && e.touches.length === 2) {
-      const [a, b] = [e.touches[0], e.touches[1]];
-      const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-      const mid = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
-      const scale = dist / lastTouchDist;
-      zoomAt(zoom * scale, mid.x, mid.y);
-      lastTouchDist = dist;
-      panX += (mid.x - lastTouchMid.x);
-      panY += (mid.y - lastTouchMid.y);
-      clampPan();
-      updateTransform();
-      lastTouchMid = mid;
     }
   }
 
   function handleTouchEnd(e) {
     e.preventDefault();
-    if (touchMode === 'draw') endDraw();
-    if (e.touches.length === 0) touchMode = null;
-    else if (e.touches.length === 1 && touchMode === 'pinch') touchMode = null;
+    if (isDrawing) endDraw();
+  }
+
+  function handleResize() {
+    applyCanvasSize();
+    render();
   }
 
   // --- Lifecycle ---
   onMount(() => {
     ctx = canvasEl.getContext('2d');
     applyCanvasSize();
-    centerCanvas();
     render();
     window.addEventListener('keydown', handleKeydown);
-    window.addEventListener('keyup', handleKeyup);
-    window.addEventListener('resize', () => { clampPan(); updateTransform(); });
+    window.addEventListener('resize', handleResize);
   });
 
   onDestroy(() => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeydown);
-      window.removeEventListener('keyup', handleKeyup);
+      window.removeEventListener('resize', handleResize);
     }
   });
 </script>
 
-<div class="par-app">
-  <div class="sidebar">
-    <div class="info-box">
-      <strong>Tracé</strong> : contour à relier.<br>
-      <strong>Décor</strong> : détails libres.<br>
-      Molette = zoom · Espace+glisser = déplacer.
-    </div>
-
-    <div class="control-section">
-      <div class="section-label">Outil</div>
-      <div class="tool-bar">
-        <button class="tool-btn" class:active={tool === 'trace'} onclick={() => setTool('trace')}>Tracé</button>
-        <button class="tool-btn" class:active={tool === 'decor'} onclick={() => setTool('decor')}>Décor</button>
-      </div>
-    </div>
-
-    {#if tool === 'decor'}
-      <div class="control-section">
-        <div class="section-label">Taille du pinceau</div>
-        <div class="range-row">
-          <input type="range" bind:value={decorWidth} min="1" max="12" step="0.5" oninput={render} />
-          <span class="range-val">{decorWidth}</span>
-        </div>
-      </div>
-    {/if}
-
-    <div class="stats-bar">
-      <div>Traits: <span class="v">{statStrokes}</span></div>
-      <div>Décors: <span class="v">{statDecors}</span></div>
-      <div>Points: <span class="v">{statPoints}</span></div>
-    </div>
-
-    <div class="control-section">
-      <div class="section-label">Affichage</div>
-      <label class="switch-row">
-        <span class="switch">
-          <input type="checkbox" bind:checked={showPoints} onchange={render} />
-          <span class="slider-toggle"></span>
-        </span>
-        <span class="switch-label-text">Points & numéros</span>
-      </label>
-    </div>
-
-    <div class="control-section">
-      <div class="section-label">Réglages points</div>
-      <div class="control">
-        <label>Nombre de points</label>
-        <div class="range-row">
-          <input type="range" bind:value={numPoints} min="5" max="150" step="1" oninput={render} />
-          <span class="range-val">{numPoints}</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="control">
-          <label>Début</label>
-          <input type="number" bind:value={startNum} min="0" max="999" onchange={render} />
-        </div>
-        <div class="control">
-          <label>Pas</label>
-          <select bind:value={stepNum} onchange={render}>
-            <option value={1}>1 en 1</option>
-            <option value={2}>2 en 2</option>
-            <option value={5}>5 en 5</option>
-            <option value={10}>10 en 10</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="control">
-          <label>Points</label>
-          <select bind:value={dotSize} onchange={render}>
-            <option value={4}>Petit</option>
-            <option value={6}>Moyen</option>
-            <option value={8}>Grand</option>
-          </select>
-        </div>
-        <div class="control">
-          <label>Texte</label>
-          <select bind:value={fontSize} onchange={render}>
-            <option value={9}>Petit</option>
-            <option value={12}>Moyen</option>
-            <option value={15}>Grand</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-outline" onclick={undo}>Annuler</button>
-      <button class="btn btn-danger" onclick={clearAll}>Effacer</button>
-    </div>
-
-    <div class="btn-row bottom-action">
-      <button class="btn btn-primary full-width" onclick={exportPDF}>Exporter PDF A4</button>
-    </div>
-  </div>
-
+<div class="simple-app">
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="canvas-area" bind:this={canvasArea}
-    onmousedown={handleAreaMousedown}
-    onmousemove={handleAreaMousemove}
-    onmouseup={handleAreaMouseup}
-    onwheel={handleWheel}>
-    <div class="canvas-wrap" bind:this={canvasWrap}>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <canvas bind:this={canvasEl}
-        onmouseenter={handleCanvasEnter}
-        onmouseleave={handleCanvasLeave}
-        oncontextmenu={(e) => e.preventDefault()}
-        ontouchstart={handleTouchStart}
-        ontouchmove={handleTouchMove}
-        ontouchend={handleTouchEnd}></canvas>
-    </div>
-    <div class="zoom-controls">
-      <button class="zoom-btn" onclick={() => zoomCenter(-0.25)}>−</button>
-      <span class="zoom-label">{Math.round(zoom * 100)}%</span>
-      <button class="zoom-btn" onclick={() => zoomCenter(0.25)}>+</button>
-      <button class="zoom-btn zoom-reset" onclick={resetZoom}>↺</button>
-    </div>
+    onmousedown={handleMousedown}
+    onmousemove={handleMousemove}
+    onmouseup={handleMouseup}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <canvas bind:this={canvasEl}
+      onmouseenter={handleCanvasEnter}
+      onmouseleave={handleCanvasLeave}
+      oncontextmenu={(e) => e.preventDefault()}
+      ontouchstart={handleTouchStart}
+      ontouchmove={handleTouchMove}
+      ontouchend={handleTouchEnd}></canvas>
   </div>
+
+  <div class="action-bar">
+    <div class="tool-bar">
+      <button class="tool-btn" class:active={tool === 'trace'} onclick={() => setTool('trace')}>Tracé</button>
+      <button class="tool-btn" class:active={tool === 'decor'} onclick={() => setTool('decor')}>Décor</button>
+    </div>
+    <button class="btn btn-outline" onclick={undo}>Annuler</button>
+    <button class="btn btn-outline btn-danger" onclick={clearAll}>Effacer</button>
+    <button class="btn btn-primary" onclick={exportPDF}>Exporter PDF</button>
+  </div>
+
+  <button class="toggle-options" onclick={() => { showOptions = !showOptions }}>
+    <span class="toggle-arrow" class:open={showOptions}>&#9654;</span>
+    Réglages
+  </button>
+
+  {#if showOptions}
+    <div class="options-panel">
+      <div class="opt-row">
+        {#if tool === 'decor'}
+          <div class="opt-group">
+            <h3>Pinceau</h3>
+            <label>
+              Taille : {decorWidth}
+              <input type="range" bind:value={decorWidth} min="1" max="12" step="0.5" oninput={render} />
+            </label>
+          </div>
+        {/if}
+
+        <div class="opt-group">
+          <h3>Affichage</h3>
+          <label class="switch-row">
+            <span class="switch">
+              <input type="checkbox" bind:checked={showPoints} onchange={render} />
+              <span class="slider-toggle"></span>
+            </span>
+            <span class="switch-label-text">Points & numéros</span>
+          </label>
+        </div>
+
+        <div class="opt-group">
+          <h3>Points</h3>
+          <label>
+            Nombre : {numPoints}
+            <input type="range" bind:value={numPoints} min="5" max="150" step="1" oninput={render} />
+          </label>
+        </div>
+
+        <div class="opt-group">
+          <h3>Numérotation</h3>
+          <div class="num-row">
+            <label>
+              Début
+              <input type="number" bind:value={startNum} min="0" max="999" onchange={render} />
+            </label>
+            <label>
+              Pas
+              <select bind:value={stepNum} onchange={render}>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <h3>Taille</h3>
+          <div class="num-row">
+            <label>
+              Points
+              <select bind:value={dotSize} onchange={render}>
+                <option value={4}>Petit</option>
+                <option value={6}>Moyen</option>
+                <option value={8}>Grand</option>
+              </select>
+            </label>
+            <label>
+              Texte
+              <select bind:value={fontSize} onchange={render}>
+                <option value={9}>Petit</option>
+                <option value={12}>Moyen</option>
+                <option value={15}>Grand</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div>Traits: <span class="v">{statStrokes}</span></div>
+        <div>Décors: <span class="v">{statDecors}</span></div>
+        <div>Points: <span class="v">{statPoints}</span></div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <div class="brush-cursor" bind:this={brushEl}></div>
 
 <style>
-  .par-app {
-    display: flex;
-    gap: 0;
-    height: calc(100vh - 6rem);
-    min-height: 800px;
+  .simple-app {
     border: 1px solid var(--border, #E0E0E0);
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
   }
 
-  .sidebar {
-    width: 280px;
-    min-width: 280px;
-    background: #fff;
-    border-right: 1px solid var(--border, #E0E0E0);
-    padding: 1.25rem 1rem;
+  .canvas-area {
     display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    overflow-y: auto;
-  }
-
-  .info-box {
-    font-size: 0.8rem;
-    color: var(--text-soft, #555);
-    line-height: 1.5;
-    padding: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
     background: var(--bg-warm, #EFEFE6);
-    border-radius: 6px;
   }
 
-  .info-box strong {
-    color: var(--text, #111);
+  .canvas-area canvas {
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    cursor: crosshair;
   }
 
-  .section-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-soft, #555);
-    margin-bottom: 0.4rem;
-  }
-
-  .control-section {
+  /* --- Action bar --- */
+  .action-bar {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border, #E0E0E0);
+    flex-wrap: wrap;
   }
 
   .tool-bar {
     display: flex;
-    gap: 0.4rem;
+    gap: 0;
+    margin-right: 0.5rem;
   }
 
   .tool-btn {
     font-family: var(--sans, system-ui);
     font-size: 0.78rem;
     font-weight: 600;
-    padding: 0.5rem 0.75rem;
-    border: 2px solid var(--border, #E0E0E0);
-    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid var(--border, #E0E0E0);
     background: #fff;
     color: var(--text, #111);
     cursor: pointer;
     transition: all 0.15s;
-    flex: 1;
-    text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  .tool-btn:first-child {
+    border-radius: 3px 0 0 3px;
+  }
+
+  .tool-btn:last-child {
+    border-radius: 0 3px 3px 0;
+    border-left: none;
   }
 
   .tool-btn:hover {
@@ -872,24 +729,132 @@
     color: #fff;
   }
 
-  .range-row {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: 1.5px solid var(--text, #111);
+    border-radius: 3px;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    background: transparent;
+    color: var(--text, #111);
+  }
+
+  .btn-primary {
+    background: var(--text, #111);
+    color: #fff;
+    border-color: var(--text, #111);
+  }
+
+  .btn-primary:hover {
+    background: var(--blue, #1A5CFF);
+    border-color: var(--blue, #1A5CFF);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(26, 92, 255, 0.2);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border, #E0E0E0);
+    color: var(--text, #111);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--blue, #1A5CFF);
+    color: var(--blue, #1A5CFF);
+  }
+
+  .btn-danger {
+    color: var(--red, #E63024);
+    border-color: #f0d4d0;
+  }
+
+  .btn-danger:hover {
+    border-color: var(--red, #E63024);
+    color: var(--red, #E63024);
+  }
+
+  /* --- Toggle options --- */
+  .toggle-options {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-  }
-
-  .range-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--blue, #1A5CFF);
-  }
-
-  .range-val {
-    font-family: monospace;
-    font-size: 0.85rem;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border, #E0E0E0);
+    cursor: pointer;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.78rem;
     font-weight: 600;
-    min-width: 28px;
-    text-align: right;
-    color: var(--blue, #1A5CFF);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft, #555);
+    transition: color 0.2s;
+  }
+
+  .toggle-options:hover {
+    color: var(--text, #111);
+  }
+
+  .toggle-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.25s ease;
+    display: inline-block;
+  }
+
+  .toggle-arrow.open {
+    transform: rotate(90deg);
+  }
+
+  /* --- Options panel --- */
+  .options-panel {
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border, #E0E0E0);
+    background: var(--bg-warm, #EFEFE6);
+  }
+
+  .opt-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .opt-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .opt-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .opt-group h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-soft, #555);
+    margin-bottom: 0.6rem;
+    font-family: var(--sans, system-ui, sans-serif);
+    font-weight: 600;
+  }
+
+  .num-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .num-row label {
+    flex: 1;
   }
 
   .stats-bar {
@@ -897,8 +862,9 @@
     font-size: 0.72rem;
     color: var(--text-soft, #555);
     padding: 0.5rem 0.75rem;
-    background: var(--bg-warm, #EFEFE6);
+    background: #fff;
     border-radius: 6px;
+    border: 1px solid var(--border, #E0E0E0);
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
@@ -907,6 +873,39 @@
   .stats-bar .v {
     font-weight: 600;
     color: var(--text, #111);
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: var(--text, #111);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    margin-top: 0.2rem;
+    accent-color: var(--blue, #1A5CFF);
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    background: #fff;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.2rem;
   }
 
   .switch-row {
@@ -963,173 +962,6 @@
     font-weight: 500;
   }
 
-  .control {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .control label {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--text, #111);
-  }
-
-  .control input[type="number"],
-  .control select {
-    font-family: monospace;
-    font-size: 0.82rem;
-    padding: 0.4rem 0.5rem;
-    border: 1px solid var(--border, #E0E0E0);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--text, #111);
-    outline: none;
-    width: 100%;
-  }
-
-  .row {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .row .control {
-    flex: 1;
-  }
-
-  .btn-row {
-    display: flex;
-    gap: 0.4rem;
-  }
-
-  .btn-row .btn {
-    flex: 1;
-  }
-
-  .bottom-action {
-    margin-top: auto;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    font-family: var(--sans, system-ui);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.6rem 1rem;
-    border: 1.5px solid var(--text, #111);
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    background: transparent;
-    color: var(--text, #111);
-  }
-
-  .btn-primary {
-    background: var(--text, #111);
-    color: #fff;
-    border-color: var(--text, #111);
-  }
-
-  .btn-primary:hover {
-    background: var(--blue, #1A5CFF);
-    border-color: var(--blue, #1A5CFF);
-    color: #fff;
-  }
-
-  .btn-outline {
-    background: transparent;
-    border-color: var(--border, #E0E0E0);
-    color: var(--text, #111);
-  }
-
-  .btn-outline:hover {
-    border-color: var(--blue, #1A5CFF);
-    color: var(--blue, #1A5CFF);
-  }
-
-  .btn-danger {
-    background: #fef2f0;
-    color: var(--red, #E63024);
-    border-color: #f0d4d0;
-  }
-
-  .btn-danger:hover {
-    background: #fde6e3;
-  }
-
-  .full-width {
-    width: 100%;
-  }
-
-  .canvas-area {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    background: var(--bg-warm, #EFEFE6);
-    height: 100%;
-  }
-
-  .canvas-wrap {
-    position: absolute;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-    transform-origin: 0 0;
-    will-change: transform;
-  }
-
-  .canvas-wrap canvas {
-    display: block;
-  }
-
-  .zoom-controls {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    display: flex;
-    gap: 4px;
-    z-index: 10;
-  }
-
-  .zoom-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border, #E0E0E0);
-    background: #fff;
-    color: var(--text, #111);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-
-  .zoom-btn:hover {
-    border-color: var(--blue, #1A5CFF);
-    color: var(--blue, #1A5CFF);
-  }
-
-  .zoom-reset {
-    font-size: 12px;
-  }
-
-  .zoom-label {
-    font-family: monospace;
-    font-size: 0.7rem;
-    color: var(--text-soft, #555);
-    align-self: center;
-    min-width: 36px;
-    text-align: center;
-  }
-
   :global(.brush-cursor) {
     position: fixed;
     pointer-events: none;
@@ -1147,22 +979,28 @@
   }
 
   @media (max-width: 860px) {
-    .par-app {
-      flex-direction: column;
-      height: auto;
-      min-height: auto;
-    }
-
-    .sidebar {
-      width: 100%;
-      min-width: unset;
-      border-right: none;
-      border-bottom: 1px solid var(--border, #E0E0E0);
-    }
-
     .canvas-area {
-      flex: none;
-      height: 800px;
+      padding: 1rem;
+    }
+
+    .opt-row {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .action-bar {
+      padding: 0.75rem 1rem;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.72rem;
+    }
+
+    .tool-btn {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.72rem;
     }
   }
 </style>
