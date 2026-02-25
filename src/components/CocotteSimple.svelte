@@ -57,18 +57,8 @@
 
   let showOptions = $state(false);
 
-  // Zoom / Pan
-  let zoom = $state(1);
-  let panX = $state(0);
-  let panY = $state(0);
-  let spaceDown = false;
-  let isPanning = false;
-  let panMX = 0, panMY = 0, panSX = 0, panSY = 0;
-
   // DOM refs
   let canvasEl;
-  let canvasWrap;
-  let canvasArea;
   let ctx;
 
   // --- Seeded random ---
@@ -81,89 +71,14 @@
     };
   }
 
-  // --- Canvas size & transform ---
+  // --- Canvas size (fixed 100%) ---
   function applyCanvasSize() {
     if (!canvasEl || !ctx) return;
-    const s = SQUARE * zoom;
-    canvasEl.width = Math.round(s * DPR);
-    canvasEl.height = Math.round(s * DPR);
-    canvasEl.style.width = Math.round(s) + 'px';
-    canvasEl.style.height = Math.round(s) + 'px';
-    ctx.setTransform(s * DPR / SQUARE, 0, 0, s * DPR / SQUARE, 0, 0);
-  }
-
-  function updateTransform() {
-    if (!canvasWrap) return;
-    canvasWrap.style.transform = `translate(${panX}px,${panY}px)`;
-  }
-
-  function centerCanvas() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const s = SQUARE * zoom;
-    panX = Math.max(0, (ar.width - s) / 2);
-    panY = Math.max(0, (ar.height - s) / 2);
-    updateTransform();
-  }
-
-  function clampPan() {
-    if (!canvasArea) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const s = SQUARE * zoom;
-    const minX = Math.min(0, ar.width - s - 20);
-    const maxX = Math.max(ar.width - s, 20);
-    const minY = Math.min(0, ar.height - s - 20);
-    const maxY = Math.max(ar.height - s, 20);
-    panX = Math.max(minX, Math.min(maxX, panX));
-    panY = Math.max(minY, Math.min(maxY, panY));
-  }
-
-  // --- Zoom ---
-  function zoomAt(newZoom, pivotCX, pivotCY) {
-    newZoom = Math.max(0.5, Math.min(4, Math.round(newZoom * 20) / 20));
-    if (newZoom === zoom) return;
-    const ar = canvasArea.getBoundingClientRect();
-    const ax = pivotCX - ar.left, ay = pivotCY - ar.top;
-    const lx = (ax - panX) / zoom, ly = (ay - panY) / zoom;
-    zoom = newZoom;
-    applyCanvasSize();
-    panX = ax - lx * zoom;
-    panY = ay - ly * zoom;
-    clampPan();
-    updateTransform();
-    render();
-  }
-
-  function zoomCenter(delta) {
-    const ar = canvasArea.getBoundingClientRect();
-    zoomAt(zoom + delta, ar.left + ar.width / 2, ar.top + ar.height / 2);
-  }
-
-  function resetZoom() {
-    zoom = 1;
-    applyCanvasSize();
-    centerCanvas();
-    render();
-  }
-
-  // --- Pan ---
-  function startPan(cx, cy) {
-    isPanning = true;
-    panMX = cx; panMY = cy;
-    panSX = panX; panSY = panY;
-    if (canvasEl) canvasEl.style.cursor = 'grabbing';
-  }
-
-  function doPan(cx, cy) {
-    panX = panSX + (cx - panMX);
-    panY = panSY + (cy - panMY);
-    clampPan();
-    updateTransform();
-  }
-
-  function endPan() {
-    isPanning = false;
-    if (canvasEl) canvasEl.style.cursor = spaceDown ? 'grab' : 'default';
+    canvasEl.width = Math.round(SQUARE * DPR);
+    canvasEl.height = Math.round(SQUARE * DPR);
+    canvasEl.style.width = SQUARE + 'px';
+    canvasEl.style.height = SQUARE + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
   // --- Drawing helpers ---
@@ -377,7 +292,6 @@
   // --- Actions ---
   function regenerate() {
     seed = Math.floor(Math.random() * 100000);
-    // Also randomize colors + messages for a fully fresh cocotte
     const rng = mulberry32(seed);
     const hues = [0, 60, 120, 200, 270, 330];
     for (let i = 0; i < 4; i++) {
@@ -440,89 +354,34 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    applyCanvasSize();
-    render();
   }
 
-  // --- Event handlers ---
+  // --- Keyboard shortcut ---
   function handleKeydown(e) {
-    if (e.code === 'Space' && !e.repeat && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      e.preventDefault();
-      spaceDown = true;
-      if (canvasEl) canvasEl.style.cursor = 'grab';
-    }
     if (e.key === 's' && !e.ctrlKey && !e.metaKey && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
       exportPDF();
     }
   }
 
-  function handleKeyup(e) {
-    if (e.code === 'Space') {
-      spaceDown = false;
-      isPanning = false;
-      if (canvasEl) canvasEl.style.cursor = 'default';
-    }
-  }
-
-  function handleWheel(e) {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-    zoomAt(zoom + delta, e.clientX, e.clientY);
-  }
-
-  function handleAreaMousedown(e) {
-    if (e.button === 1 || (e.button === 0 && spaceDown)) {
-      e.preventDefault();
-      startPan(e.clientX, e.clientY);
-    }
-  }
-
-  function handleAreaMousemove(e) {
-    if (isPanning) doPan(e.clientX, e.clientY);
-  }
-
-  function handleAreaMouseup() {
-    if (isPanning) endPan();
-  }
-
   // --- Lifecycle ---
   onMount(() => {
     ctx = canvasEl.getContext('2d');
     applyCanvasSize();
-    centerCanvas();
     render();
-
     window.addEventListener('keydown', handleKeydown);
-    window.addEventListener('keyup', handleKeyup);
-    window.addEventListener('resize', () => { clampPan(); updateTransform(); });
   });
 
   onDestroy(() => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeydown);
-      window.removeEventListener('keyup', handleKeyup);
     }
   });
 </script>
 
 <div class="simple-app">
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="canvas-area" bind:this={canvasArea}
-    onmousedown={handleAreaMousedown}
-    onmousemove={handleAreaMousemove}
-    onmouseup={handleAreaMouseup}
-    onwheel={handleWheel}>
-    <div class="canvas-wrap" bind:this={canvasWrap}>
-      <canvas bind:this={canvasEl}></canvas>
-    </div>
-    <div class="zoom-controls">
-      <button class="zoom-btn" onclick={() => zoomCenter(-0.25)}>−</button>
-      <span class="zoom-label">{Math.round(zoom * 100)}%</span>
-      <button class="zoom-btn" onclick={() => zoomCenter(0.25)}>+</button>
-      <button class="zoom-btn zoom-reset" onclick={resetZoom}>↺</button>
-    </div>
+  <div class="canvas-area">
+    <canvas bind:this={canvasEl}></canvas>
   </div>
 
   <div class="action-bar">
@@ -598,69 +457,18 @@
     background: #fff;
   }
 
-  /* --- Canvas area: full width --- */
   .canvas-area {
-    width: 100%;
-    height: calc(100vh - 6rem);
-    min-height: 560px;
-    overflow: hidden;
-    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
     background: var(--bg-warm, #EFEFE6);
   }
 
-  .canvas-wrap {
-    position: absolute;
-    background: #fff;
+  .canvas-area canvas {
+    display: block;
     border-radius: 4px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-    transform-origin: 0 0;
-    will-change: transform;
-    cursor: default;
-  }
-
-  .canvas-wrap canvas {
-    display: block;
-  }
-
-  .zoom-controls {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    display: flex;
-    gap: 4px;
-    z-index: 10;
-  }
-
-  .zoom-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border, #E0E0E0);
-    background: #fff;
-    color: var(--text, #111);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  .zoom-btn:hover {
-    border-color: var(--blue, #1A5CFF);
-    color: var(--blue, #1A5CFF);
-  }
-
-  .zoom-reset { font-size: 12px; }
-
-  .zoom-label {
-    font-family: monospace;
-    font-size: 0.7rem;
-    color: var(--text-soft, #555);
-    align-self: center;
-    min-width: 36px;
-    text-align: center;
   }
 
   /* --- Action bar --- */
@@ -770,10 +578,6 @@
     font-weight: 600;
   }
 
-  .opt-messages {
-    flex: 1;
-  }
-
   .color-grid {
     display: flex;
     gap: 0.75rem;
@@ -853,8 +657,12 @@
 
   @media (max-width: 860px) {
     .canvas-area {
-      height: 80vh;
-      min-height: 400px;
+      padding: 1rem;
+    }
+
+    .canvas-area canvas {
+      max-width: 100%;
+      height: auto;
     }
 
     .opt-row {
