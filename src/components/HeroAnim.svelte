@@ -62,7 +62,7 @@
   let done = false;
 
   function drawGrid() {
-    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = 0; x <= W; x += CELL) {
@@ -135,7 +135,7 @@
 
         // Length: 2 or 4 cells
         const lenN = (noise(c * 0.4 + 31, r * 0.4 + 31) + 1) * 0.5;
-        const barLen = CELL * (lenN > 0.5 ? 4 : 2);
+        const barLen = CELL * (lenN > 0.5 ? 8 : 4);
         const isH = (c + r) % 2 === 0;
 
         // Gradient: center opaque, extremities transparent
