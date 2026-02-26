@@ -79,6 +79,9 @@
     ctx.lineWidth = 1;
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
+        // Skip ~half the intersections (stable spatial hash)
+        if (perm[(c * 17 + r * 31) & 255] & 1) continue;
+
         // Smooth wave: noise → [0,1], used as a sine-like lifecycle
         const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5;
 
