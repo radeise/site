@@ -99,14 +99,25 @@
         // Direction: alternating H/V
         const isH = (c + r) % 2 === 0;
 
-        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${intensity})`;
+        const half = barLen / 2;
+        let grd;
+        if (isH) {
+          grd = ctx.createLinearGradient(x - half, y, x + half, y);
+        } else {
+          grd = ctx.createLinearGradient(x, y - half, x, y + half);
+        }
+        grd.addColorStop(0, `rgba(${cr},${cg},${cb},0)`);
+        grd.addColorStop(0.5, `rgba(${cr},${cg},${cb},${intensity})`);
+        grd.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+
+        ctx.strokeStyle = grd;
         ctx.beginPath();
         if (isH) {
-          ctx.moveTo(x - barLen / 2, y + 0.5);
-          ctx.lineTo(x + barLen / 2, y + 0.5);
+          ctx.moveTo(x - half, y + 0.5);
+          ctx.lineTo(x + half, y + 0.5);
         } else {
-          ctx.moveTo(x + 0.5, y - barLen / 2);
-          ctx.lineTo(x + 0.5, y + barLen / 2);
+          ctx.moveTo(x + 0.5, y - half);
+          ctx.lineTo(x + 0.5, y + half);
         }
         ctx.stroke();
       }
