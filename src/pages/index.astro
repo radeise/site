@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import TissageCardAnim from '../components/TissageCardAnim.svelte';
 import PointsCardAnim from '../components/PointsCardAnim.svelte';
 import CocotteCardAnim from '../components/CocotteCardAnim.svelte';
+import HeroAnim from '../components/HeroAnim.svelte';
 
 const tools = [
   { name: "Tissage Papier", slug: "tissage", desc: "Patron de tissage généré par bruit de Perlin. Armures textiles, export PDF.", href: "/outils/tissage", available: true, cats: ["popular","build"], img: "img-tissage" },
@@ -36,7 +37,8 @@ const gallery = [
 
 <BaseLayout title="Design génératif & papier — Outils gratuits" description="Créez des objets papier uniques grâce au design génératif. Tissage, points à relier, coloriages — patrons PDF gratuits prêts à imprimer.">
   <!-- HERO -->
-  <section class="hero bg-grid" id="hero">
+  <section class="hero" id="hero">
+    <HeroAnim client:load />
     <div class="hero-label">Design génératif & papier — pliio.fr</div>
     <h1>Objets papier<br>d'<em>algorithmes</em></h1>
     <p class="hero-sub">
