@@ -1,5 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import TissageCardAnim from '../components/TissageCardAnim.svelte';
+import PointsCardAnim from '../components/PointsCardAnim.svelte';
+import CocotteCardAnim from '../components/CocotteCardAnim.svelte';
 
 const tools = [
   { name: "Tissage Papier", slug: "tissage", desc: "Patron de tissage généré par bruit de Perlin. Armures textiles, export PDF.", href: "/outils/tissage", available: true, cats: ["popular","build"], img: "img-tissage" },
@@ -78,7 +81,11 @@ const gallery = [
             class={`product-card ${!tool.available ? 'disabled' : ''}`}
             data-cats={tool.cats.join(',')}
           >
-            <div class={`card-img ${tool.img}`}></div>
+            <div class={`card-img ${tool.img}`}>
+              {tool.slug === 'tissage' && <TissageCardAnim client:visible overlay />}
+              {tool.slug === 'points' && <PointsCardAnim client:visible overlay />}
+              {tool.slug === 'cocotte' && <CocotteCardAnim client:visible overlay />}
+            </div>
             <div class="card-body">
               <div class="card-tag">{tool.available ? 'Disponible' : 'Bientôt'}</div>
               <div class="card-title">{tool.name}</div>

@@ -1,6 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
+  let { overlay = false } = $props();
+
   let canvasEl;
   let ctx;
   let raf;
@@ -42,8 +44,11 @@
   function render() {
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#EFEFE6';
-    ctx.fillRect(0, 0, W, H);
+
+    if (!overlay) {
+      ctx.fillStyle = '#EFEFE6';
+      ctx.fillRect(0, 0, W, H);
+    }
 
     const p = progress;
     const totalSegments = points.length;
@@ -51,7 +56,7 @@
 
     // Draw connecting line (animated)
     if (drawnSegments > 0) {
-      ctx.strokeStyle = '#1a1a1a';
+      ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.8)' : '#1a1a1a';
       ctx.lineWidth = 1.5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -93,7 +98,11 @@
 
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = drawnSegments >= i ? '#1a1a1a' : '#c8c4be';
+      if (overlay) {
+        ctx.fillStyle = drawnSegments >= i ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.25)';
+      } else {
+        ctx.fillStyle = drawnSegments >= i ? '#1a1a1a' : '#c8c4be';
+      }
       ctx.fill();
 
       // Number label
@@ -102,7 +111,7 @@
       ctx.font = '500 9px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#1a1a1a';
+      ctx.fillStyle = overlay ? 'rgba(255,255,255,0.9)' : '#1a1a1a';
 
       // Place label outside the shape
       const cx = W / 2, cy = H / 2;
@@ -117,7 +126,7 @@
     // Resting state hint
     if (p < 0.01) {
       // Light dashed connection preview
-      ctx.strokeStyle = '#d0cbc5';
+      ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.15)' : '#d0cbc5';
       ctx.lineWidth = 0.5;
       ctx.setLineDash([3, 4]);
       ctx.beginPath();
@@ -159,7 +168,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="card-anim" onmouseenter={enter} onmouseleave={leave}>
+<div class="card-anim" class:overlay onmouseenter={enter} onmouseleave={leave}>
   <canvas bind:this={canvasEl} style="width:{W}px;height:{H}px;"></canvas>
 </div>
 
@@ -171,6 +180,16 @@
     align-items: center;
     justify-content: center;
     background: var(--bg-warm, #EFEFE6);
+  }
+  .card-anim.overlay {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+  }
+  .card-anim.overlay canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
   canvas {
     display: block;

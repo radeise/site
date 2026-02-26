@@ -1,6 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
+  let { overlay = false } = $props();
+
   let canvasEl;
   let ctx;
   let raf;
@@ -31,9 +33,10 @@
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
 
-    // Background
-    ctx.fillStyle = '#EFEFE6';
-    ctx.fillRect(0, 0, W, H);
+    if (!overlay) {
+      ctx.fillStyle = '#EFEFE6';
+      ctx.fillRect(0, 0, W, H);
+    }
 
     const maxCells = COLS * ROWS;
     const visibleCells = Math.floor(progress * maxCells);
@@ -41,8 +44,13 @@
     // Draw warp lines (vertical, always visible as base)
     for (let c = 0; c < COLS; c++) {
       const x = PAD + c * stripW;
-      ctx.fillStyle = warpColors[c % warpColors.length];
-      ctx.globalAlpha = 0.15 + progress * 0.15;
+      if (overlay) {
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.globalAlpha = 0.3 + progress * 0.5;
+      } else {
+        ctx.fillStyle = warpColors[c % warpColors.length];
+        ctx.globalAlpha = 0.15 + progress * 0.15;
+      }
       ctx.fillRect(x, PAD, stripW - 1, H - PAD * 2);
     }
     ctx.globalAlpha = 1;
@@ -59,15 +67,19 @@
         const x = PAD + c * stripW;
 
         if (pattern[r][c]) {
-          // Weft on top — draw colored cell
-          ctx.fillStyle = weftColors[r % weftColors.length];
+          if (overlay) {
+            const opacity = 0.15 + (r % 3) * 0.05;
+            ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+          } else {
+            ctx.fillStyle = weftColors[r % weftColors.length];
+          }
           ctx.fillRect(x, y, stripW - 1, stripH - 1);
         }
       }
     }
 
     // Subtle frame
-    ctx.strokeStyle = '#d0cbc5';
+    ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.2)' : '#d0cbc5';
     ctx.lineWidth = 0.5;
     ctx.strokeRect(PAD, PAD, W - PAD * 2, H - PAD * 2);
   }
@@ -100,7 +112,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="card-anim" onmouseenter={enter} onmouseleave={leave}>
+<div class="card-anim" class:overlay onmouseenter={enter} onmouseleave={leave}>
   <canvas bind:this={canvasEl} style="width:{W}px;height:{H}px;"></canvas>
 </div>
 
@@ -112,6 +124,16 @@
     align-items: center;
     justify-content: center;
     background: var(--bg-warm, #EFEFE6);
+  }
+  .card-anim.overlay {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+  }
+  .card-anim.overlay canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
   canvas {
     display: block;

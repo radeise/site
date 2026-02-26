@@ -1,6 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
+  let { overlay = false } = $props();
+
   let canvasEl;
   let ctx;
   let raf;
@@ -18,8 +20,11 @@
   function render() {
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#EFEFE6';
-    ctx.fillRect(0, 0, W, H);
+
+    if (!overlay) {
+      ctx.fillStyle = '#EFEFE6';
+      ctx.fillRect(0, 0, W, H);
+    }
 
     const p = progress;
 
@@ -33,7 +38,6 @@
 
     for (let q = 0; q < 4; q++) {
       const { ox, oy, ci } = quadrants[q];
-      const col = COLORS[ci];
 
       const qx = OX + ox;
       const qy = OY + oy;
@@ -47,8 +51,8 @@
       const triP = Math.max(0, Math.min(1, (p - stagger) / 0.5));
 
       if (triP > 0) {
-        ctx.globalAlpha = triP;
-        ctx.fillStyle = col;
+        ctx.globalAlpha = triP * (overlay ? 0.35 : 1);
+        ctx.fillStyle = overlay ? '#fff' : COLORS[ci];
         ctx.beginPath();
         ctx.moveTo(outerCorner[0], outerCorner[1]);
         ctx.lineTo(adj1[0], adj1[1]);
@@ -62,8 +66,8 @@
       const centerCorner = [qx + (q % 2 === 0 ? half : 0), qy + (q < 2 ? half : 0)];
       const innerP = Math.max(0, Math.min(1, (p - stagger - 0.1) / 0.5));
       if (innerP > 0) {
-        ctx.globalAlpha = innerP * 0.6;
-        ctx.fillStyle = '#fafafa';
+        ctx.globalAlpha = innerP * (overlay ? 0.2 : 0.6);
+        ctx.fillStyle = overlay ? '#fff' : '#fafafa';
         ctx.beginPath();
         ctx.moveTo(centerCorner[0], centerCorner[1]);
         ctx.lineTo(adj1[0], adj1[1]);
@@ -78,7 +82,7 @@
     const lineP = Math.max(0, Math.min(1, (p - 0.2) / 0.4));
     if (lineP > 0) {
       ctx.globalAlpha = lineP;
-      ctx.strokeStyle = '#333';
+      ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.5)' : '#333';
       ctx.lineWidth = 1;
       ctx.strokeRect(OX, OY, S, S);
       ctx.beginPath();
@@ -97,8 +101,8 @@
     // Fold marks
     const foldP = Math.max(0, Math.min(1, (p - 0.5) / 0.3));
     if (foldP > 0) {
-      ctx.globalAlpha = foldP * 0.5;
-      ctx.strokeStyle = '#999';
+      ctx.globalAlpha = foldP * (overlay ? 0.35 : 0.5);
+      ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.6)' : '#999';
       ctx.lineWidth = 0.5;
       ctx.setLineDash([4, 3]);
       const mark = 10;
@@ -114,7 +118,7 @@
 
     // Resting state: light outline
     if (p < 0.05) {
-      ctx.strokeStyle = '#d0cbc5';
+      ctx.strokeStyle = overlay ? 'rgba(255,255,255,0.15)' : '#d0cbc5';
       ctx.lineWidth = 0.5;
       ctx.strokeRect(OX, OY, S, S);
       ctx.beginPath();
@@ -152,7 +156,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="card-anim" onmouseenter={enter} onmouseleave={leave}>
+<div class="card-anim" class:overlay onmouseenter={enter} onmouseleave={leave}>
   <canvas bind:this={canvasEl} style="width:{W}px;height:{H}px;"></canvas>
 </div>
 
@@ -164,6 +168,16 @@
     align-items: center;
     justify-content: center;
     background: var(--bg-warm, #EFEFE6);
+  }
+  .card-anim.overlay {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+  }
+  .card-anim.overlay canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
   canvas {
     display: block;
