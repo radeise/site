@@ -72,17 +72,18 @@
     }
     ctx.stroke();
 
-    /* Colored marks at intersections */
+    /* Colored lines at intersections */
     const cols = Math.ceil(W / CELL) + 1;
     const rows = Math.ceil(H / CELL) + 1;
 
+    ctx.lineWidth = 1;
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
         const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5;
 
         if (n < 0.52) continue;
 
-        const intensity = (n - 0.52) / 0.48;
+        const intensity = (n - 0.52) / 0.48; // 0 → 1
         const x = c * CELL;
         const y = r * CELL;
 
@@ -91,25 +92,23 @@
         const ci = Math.floor(cn * COLORS.length) % COLORS.length;
         const [cr, cg, cb] = COLORS[ci];
 
-        // Weave hint: alternating H/V bars at higher intensity
-        if (intensity > 0.35) {
-          const isH = (c + r) % 2 === 0;
-          const barLen = CELL * 0.55;
-          const barW = 2 + intensity * 2;
-          const alpha = intensity * 0.18;
-          ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
-          if (isH) {
-            ctx.fillRect(x - barLen / 2, y - barW / 2, barLen, barW);
-          } else {
-            ctx.fillRect(x - barW / 2, y - barLen / 2, barW, barLen);
-          }
-        }
+        // Line length: 0.3 → 2 cells, driven by a second noise layer
+        const lenN = (noise(c * 0.4 + 31, r * 0.4 + 31 + time * 0.5) + 1) * 0.5;
+        const barLen = CELL * (0.3 + lenN * 1.7);
 
-        // Small dot at intersection
-        const dotSize = 2 + intensity * 3.5;
-        const dotAlpha = intensity * 0.3;
-        ctx.fillStyle = `rgba(${cr},${cg},${cb},${dotAlpha})`;
-        ctx.fillRect(x - dotSize / 2, y - dotSize / 2, dotSize, dotSize);
+        // Direction: alternating H/V
+        const isH = (c + r) % 2 === 0;
+
+        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${intensity})`;
+        ctx.beginPath();
+        if (isH) {
+          ctx.moveTo(x - barLen / 2, y + 0.5);
+          ctx.lineTo(x + barLen / 2, y + 0.5);
+        } else {
+          ctx.moveTo(x + 0.5, y - barLen / 2);
+          ctx.lineTo(x + 0.5, y + barLen / 2);
+        }
+        ctx.stroke();
       }
     }
   }
