@@ -1,0 +1,280 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Boutique" description="Kits papier Pliio : tissages, cocottes et cahiers de points à relier. Imprimés sur beau papier, prêts à découper et assembler.">
+  <section class="boutique-hero">
+    <div class="container">
+      <p class="label">Boutique</p>
+      <h1>Prolongez <em>l'expérience</em></h1>
+      <p class="subtitle">Des kits papier imprimés sur papier épais, prêts à découper et assembler. Chaque pièce est générée de manière unique.</p>
+    </div>
+  </section>
+
+  <section class="boutique-products">
+    <div class="container">
+
+      <a href="#" class="product-row" target="_blank" rel="noopener">
+        <div class="product-img">
+          <div class="img-placeholder">
+            <span>Photo</span>
+          </div>
+        </div>
+        <div class="product-info">
+          <span class="product-tag">Kit créatif</span>
+          <h2>Kit Tissage papier</h2>
+          <p class="product-desc">Un patron de tissage unique, imprimé sur papier cartonné 200 g. Comprend la chaîne, les bandes de trame et la fiche d'assemblage. Prêt à découper et tisser.</p>
+          <div class="product-footer">
+            <span class="product-price">18 €</span>
+            <span class="product-cta">Commander <span class="arrow">&rarr;</span></span>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="product-row" target="_blank" rel="noopener">
+        <div class="product-img">
+          <div class="img-placeholder">
+            <span>Photo</span>
+          </div>
+        </div>
+        <div class="product-info">
+          <span class="product-tag">Kit créatif</span>
+          <h2>Kit Cocotte en papier</h2>
+          <p class="product-desc">Lot de 5 cocottes uniques, imprimées sur papier épais avec couleurs et messages personnalisés. Un classique revisité par le design génératif.</p>
+          <div class="product-footer">
+            <span class="product-price">12 €</span>
+            <span class="product-cta">Commander <span class="arrow">&rarr;</span></span>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="product-row" target="_blank" rel="noopener">
+        <div class="product-img">
+          <div class="img-placeholder">
+            <span>Photo</span>
+          </div>
+        </div>
+        <div class="product-info">
+          <span class="product-tag">Cahier d'activité</span>
+          <h2>Cahier de points à relier</h2>
+          <p class="product-desc">12 dessins originaux à relier point par point, imprimés sur papier de qualité. Chaque motif est unique, généré par algorithme. Pour petits et grands.</p>
+          <div class="product-footer">
+            <span class="product-price">14 €</span>
+            <span class="product-cta">Commander <span class="arrow">&rarr;</span></span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="boutique-note">
+    <div class="container">
+      <p>Envoi soigné sous 3 à 5 jours ouvrés. Chaque commande est préparée à la main.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --- Hero --- */
+  .boutique-hero {
+    padding: calc(var(--nav-height) + 3rem) 0 2.5rem;
+    text-align: center;
+  }
+
+  .boutique-hero .label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.8rem;
+  }
+
+  .boutique-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+
+  .boutique-hero h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .boutique-hero .subtitle {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* --- Products --- */
+  .boutique-products {
+    padding: 1rem 0 3rem;
+  }
+
+  .boutique-products .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .product-row {
+    display: flex;
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.5s var(--ease);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .product-row:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.07);
+    border-color: transparent;
+  }
+
+  .product-img {
+    flex: 0 0 280px;
+    background: var(--bg-warm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .img-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      linear-gradient(135deg, rgba(0,0,0,0.02) 25%, transparent 25%),
+      linear-gradient(225deg, rgba(0,0,0,0.02) 25%, transparent 25%),
+      linear-gradient(315deg, rgba(0,0,0,0.02) 25%, transparent 25%),
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%);
+    background-size: 20px 20px;
+  }
+
+  .img-placeholder span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    opacity: 0.4;
+    background: rgba(255,255,255,0.7);
+    padding: 0.4rem 0.8rem;
+    border-radius: 3px;
+  }
+
+  .product-info {
+    flex: 1;
+    padding: 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .product-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .product-info h2 {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  .product-desc {
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+    max-width: 440px;
+  }
+
+  .product-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .product-price {
+    font-family: var(--sans);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .product-cta {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: all 0.3s var(--ease);
+  }
+
+  .product-row:hover .product-cta {
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+
+  .product-cta .arrow {
+    display: inline-block;
+    transition: transform 0.3s var(--ease);
+  }
+
+  .product-row:hover .product-cta .arrow {
+    transform: translateX(3px);
+  }
+
+  /* --- Note --- */
+  .boutique-note {
+    padding: 0 0 4rem;
+    text-align: center;
+  }
+
+  .boutique-note p {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    .product-row {
+      flex-direction: column;
+    }
+
+    .product-img {
+      flex: none;
+      height: 180px;
+    }
+
+    .product-info {
+      padding: 1.5rem;
+    }
+
+    .product-info h2 {
+      font-size: 1.2rem;
+    }
+  }
+</style>
