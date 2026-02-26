@@ -1,11 +1,13 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
+  let wrapEl;
   let canvasEl;
   let ctx;
   let raf;
   let resizeObs;
   let W = 0, H = 0;
+  let hero;
 
   const DPR = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
   const CELL = 48;
@@ -76,11 +78,11 @@
 
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
-        const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5; // → [0,1]
+        const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5;
 
         if (n < 0.52) continue;
 
-        const intensity = (n - 0.52) / 0.48; // → [0,1]
+        const intensity = (n - 0.52) / 0.48;
         const x = c * CELL;
         const y = r * CELL;
 
@@ -119,23 +121,23 @@
   }
 
   function resize() {
-    const rect = canvasEl.parentElement.getBoundingClientRect();
+    if (!hero) return;
+    const rect = hero.getBoundingClientRect();
     W = rect.width;
     H = rect.height;
     canvasEl.width = W * DPR;
     canvasEl.height = H * DPR;
-    canvasEl.style.width = W + 'px';
-    canvasEl.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
   onMount(() => {
+    hero = wrapEl.closest('.hero');
     ctx = canvasEl.getContext('2d');
     resize();
     render();
     raf = requestAnimationFrame(animate);
     resizeObs = new ResizeObserver(resize);
-    resizeObs.observe(canvasEl.parentElement);
+    resizeObs.observe(hero);
   });
 
   onDestroy(() => {
@@ -144,13 +146,20 @@
   });
 </script>
 
-<canvas bind:this={canvasEl}></canvas>
+<div class="hero-canvas" bind:this={wrapEl}>
+  <canvas bind:this={canvasEl}></canvas>
+</div>
 
 <style>
-  canvas {
+  .hero-canvas {
     position: absolute;
     inset: 0;
-    display: block;
+    overflow: hidden;
     pointer-events: none;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 </style>
