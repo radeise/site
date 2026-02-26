@@ -100,6 +100,8 @@
   function enter() { hovering = true; }
   function leave() { hovering = false; }
 
+  let parentCard;
+
   onMount(() => {
     ctx = canvasEl.getContext('2d');
     canvasEl.width = W * DPR;
@@ -107,6 +109,12 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     render();
     raf = requestAnimationFrame(animate);
+
+    if (overlay) {
+      parentCard = wrapEl.closest('.product-card') || wrapEl.parentElement;
+      parentCard.addEventListener('mouseenter', enter);
+      parentCard.addEventListener('mouseleave', leave);
+    }
 
     if (isTouch) {
       observer = new IntersectionObserver(
@@ -120,11 +128,15 @@
   onDestroy(() => {
     if (raf) cancelAnimationFrame(raf);
     if (observer) observer.disconnect();
+    if (parentCard) {
+      parentCard.removeEventListener('mouseenter', enter);
+      parentCard.removeEventListener('mouseleave', leave);
+    }
   });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="card-anim" class:overlay bind:this={wrapEl} onmouseenter={enter} onmouseleave={leave}>
+<div class="card-anim" class:overlay bind:this={wrapEl} onmouseenter={overlay ? undefined : enter} onmouseleave={overlay ? undefined : leave}>
   <canvas bind:this={canvasEl} style="width:{W}px;height:{H}px;"></canvas>
 </div>
 
@@ -142,6 +154,7 @@
     inset: 0;
     background: transparent;
     z-index: 1;
+    pointer-events: none;
   }
   .card-anim.overlay canvas {
     width: 100% !important;
