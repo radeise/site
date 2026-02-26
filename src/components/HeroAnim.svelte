@@ -92,9 +92,9 @@
         const ci = Math.floor(cn * COLORS.length) % COLORS.length;
         const [cr, cg, cb] = COLORS[ci];
 
-        // Line length: 0.3 → 2 cells, driven by a second noise layer
+        // Line length: 2 or 4 cells, snapped to grid intersections
         const lenN = (noise(c * 0.4 + 31, r * 0.4 + 31 + time * 0.5) + 1) * 0.5;
-        const barLen = CELL * (0.3 + lenN * 1.7);
+        const barLen = CELL * (lenN > 0.5 ? 4 : 2);
 
         // Direction: alternating H/V
         const isH = (c + r) % 2 === 0;
