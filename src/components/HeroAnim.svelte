@@ -79,11 +79,14 @@
     ctx.lineWidth = 1;
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
+        // Smooth wave: noise → [0,1], used as a sine-like lifecycle
         const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5;
 
-        if (n < 0.52) continue;
+        // Smoothstep fade in / fade out — full range [0,1]
+        const t = Math.max(0, Math.min(1, (n - 0.3) / 0.4));
+        const alpha = t * t * (3 - 2 * t); // smoothstep
+        if (alpha < 0.01) continue;
 
-        const intensity = (n - 0.52) / 0.48; // 0 → 1
         const x = c * CELL;
         const y = r * CELL;
 
@@ -99,7 +102,9 @@
         // Direction: alternating H/V
         const isH = (c + r) % 2 === 0;
 
+        // Gradient: center = peak alpha, extremities = 0 (paper fold)
         const half = barLen / 2;
+        const peak = alpha * 0.55;
         let grd;
         if (isH) {
           grd = ctx.createLinearGradient(x - half, y, x + half, y);
@@ -107,7 +112,7 @@
           grd = ctx.createLinearGradient(x, y - half, x, y + half);
         }
         grd.addColorStop(0, `rgba(${cr},${cg},${cb},0)`);
-        grd.addColorStop(0.5, `rgba(${cr},${cg},${cb},${intensity})`);
+        grd.addColorStop(0.5, `rgba(${cr},${cg},${cb},${peak})`);
         grd.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
 
         ctx.strokeStyle = grd;
