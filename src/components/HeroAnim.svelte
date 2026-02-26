@@ -22,7 +22,7 @@
   const perm = new Uint8Array(512);
   (() => {
     for (let i = 0; i < 256; i++) perm[i] = i;
-    let s = 42;
+    let s = Math.floor(Math.random() * 2147483646) + 1;
     for (let i = 255; i > 0; i--) {
       s = (s * 16807) % 2147483647;
       const j = s % (i + 1);
