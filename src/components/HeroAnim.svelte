@@ -52,13 +52,16 @@
     );
   }
 
-  let time = 0;
+  /* ---- Timeline (seconds) ---- */
+  const FADE_IN  = 0.4;   // each line fades in over 0.4s
+  const HOLD     = 0.8;   // holds at peak for 0.8s
+  const FADE_OUT = 1.2;   // fades out over 1.2s
+  const MAX_DELAY = 1.2;  // stagger spread
 
-  function render() {
-    if (!ctx || W === 0) return;
-    ctx.clearRect(0, 0, W, H);
+  let startTime = 0;
+  let done = false;
 
-    /* Grid lines — same as bg-grid */
+  function drawGrid() {
     ctx.strokeStyle = 'rgba(0,0,0,0.04)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -71,43 +74,73 @@
       ctx.lineTo(W, y + 0.5);
     }
     ctx.stroke();
+  }
 
-    /* Colored lines at intersections */
+  function render(elapsed) {
+    if (!ctx || W === 0) return;
+    ctx.clearRect(0, 0, W, H);
+
+    drawGrid();
+
+    if (done) return; // only grid remains
+
     const cols = Math.ceil(W / CELL) + 1;
     const rows = Math.ceil(H / CELL) + 1;
+    const cx = W / 2, cy = H / 2;
+    // max possible distance (corner to center) for normalizing delay
+    const maxDist = Math.sqrt(cx * cx + cy * cy);
+
+    let allDone = true;
 
     ctx.lineWidth = 1;
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
-        // Skip ~half the intersections (stable spatial hash)
+        // Skip ~half the intersections
         if (perm[(c * 17 + r * 31) & 255] & 1) continue;
-
-        // Smooth wave: noise → [0,1], used as a sine-like lifecycle
-        const n = (noise(c * 0.28, r * 0.28 + time) + 1) * 0.5;
-
-        // Smoothstep fade in / fade out — full range [0,1]
-        const t = Math.max(0, Math.min(1, (n - 0.3) / 0.4));
-        const alpha = t * t * (3 - 2 * t); // smoothstep
-        if (alpha < 0.01) continue;
 
         const x = c * CELL;
         const y = r * CELL;
 
-        // Color — stable per cell, varies spatially
+        // Delay: distance from center + noise jitter
+        const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+        const jitter = (noise(c * 0.5 + 50, r * 0.5 + 50) + 1) * 0.5 * 0.3;
+        const delay = (dist / maxDist) * MAX_DELAY + jitter;
+
+        // Timeline for this line
+        const local = elapsed - delay;
+        let alpha = 0;
+        if (local < 0) {
+          alpha = 0;
+          allDone = false;
+        } else if (local < FADE_IN) {
+          alpha = local / FADE_IN;
+          allDone = false;
+        } else if (local < FADE_IN + HOLD) {
+          alpha = 1;
+          allDone = false;
+        } else if (local < FADE_IN + HOLD + FADE_OUT) {
+          alpha = 1 - (local - FADE_IN - HOLD) / FADE_OUT;
+          allDone = false;
+        }
+
+        if (alpha < 0.01) continue;
+
+        // Smoothstep the alpha
+        alpha = alpha * alpha * (3 - 2 * alpha);
+
+        // Color
         const cn = (noise(c * 0.6 + 73, r * 0.6 + 73) + 1) * 0.5;
         const ci = Math.floor(cn * COLORS.length) % COLORS.length;
         const [cr, cg, cb] = COLORS[ci];
 
-        // Line length: 2 or 4 cells, snapped to grid intersections
-        const lenN = (noise(c * 0.4 + 31, r * 0.4 + 31 + time * 0.5) + 1) * 0.5;
+        // Length: 2 or 4 cells
+        const lenN = (noise(c * 0.4 + 31, r * 0.4 + 31) + 1) * 0.5;
         const barLen = CELL * (lenN > 0.5 ? 4 : 2);
-
-        // Direction: alternating H/V
         const isH = (c + r) % 2 === 0;
 
-        // Gradient: center = peak alpha, extremities = 0 (paper fold)
+        // Gradient: center opaque, extremities transparent
         const half = barLen / 2;
-        const peak = alpha * 0.55;
+        const peak = alpha * 0.6;
         let grd;
         if (isH) {
           grd = ctx.createLinearGradient(x - half, y, x + half, y);
@@ -130,12 +163,16 @@
         ctx.stroke();
       }
     }
+
+    if (allDone) done = true;
   }
 
-  function animate() {
-    time += 0.0025;
-    render();
-    raf = requestAnimationFrame(animate);
+  function animate(now) {
+    const elapsed = (now - startTime) / 1000;
+    render(elapsed);
+    if (!done) {
+      raf = requestAnimationFrame(animate);
+    }
   }
 
   function resize() {
@@ -146,13 +183,14 @@
     canvasEl.width = W * DPR;
     canvasEl.height = H * DPR;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (done) render(999); // redraw grid on resize
   }
 
   onMount(() => {
     hero = wrapEl.closest('.hero');
     ctx = canvasEl.getContext('2d');
     resize();
-    render();
+    startTime = performance.now();
     raf = requestAnimationFrame(animate);
     resizeObs = new ResizeObserver(resize);
     resizeObs.observe(hero);
