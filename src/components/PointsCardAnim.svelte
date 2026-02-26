@@ -3,11 +3,14 @@
 
   let { overlay = false } = $props();
 
+  let wrapEl;
   let canvasEl;
   let ctx;
   let raf;
+  let observer;
   let hovering = $state(false);
   let progress = 0;
+  const isTouch = typeof window !== 'undefined' && matchMedia('(hover: none)').matches;
 
   const W = 280, H = 200;
   const DPR = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
@@ -160,15 +163,24 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     render();
     raf = requestAnimationFrame(animate);
+
+    if (isTouch) {
+      observer = new IntersectionObserver(
+        ([e]) => { hovering = e.isIntersecting; },
+        { threshold: 0.4 }
+      );
+      observer.observe(wrapEl);
+    }
   });
 
   onDestroy(() => {
     if (raf) cancelAnimationFrame(raf);
+    if (observer) observer.disconnect();
   });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="card-anim" class:overlay onmouseenter={enter} onmouseleave={leave}>
+<div class="card-anim" class:overlay bind:this={wrapEl} onmouseenter={enter} onmouseleave={leave}>
   <canvas bind:this={canvasEl} style="width:{W}px;height:{H}px;"></canvas>
 </div>
 
