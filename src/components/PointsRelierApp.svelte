@@ -83,13 +83,22 @@
     const dots = [{ x, y }];
     placed.push(dots[0]);
 
-    // Random harmonics for smooth curvature variation
-    const nh = 3 + Math.floor(Math.random() * 3);
+    // Harmonics: low-freq dominant for large sweeping arcs
     const harm = [];
-    for (let h = 0; h < nh; h++) {
+    const nLow = 1 + Math.floor(Math.random() * 2);
+    for (let h = 0; h < nLow; h++) {
       harm.push({
-        f: 0.2 + Math.random() * 1.2,
-        a: 0.2 + Math.random() * 0.5,
+        f: 0.04 + Math.random() * 0.12,
+        a: 0.6 + Math.random() * 0.8,
+        p: Math.random() * Math.PI * 2
+      });
+    }
+    // Subtle high-freq for gentle variation
+    const nHi = 1 + Math.floor(Math.random() * 2);
+    for (let h = 0; h < nHi; h++) {
+      harm.push({
+        f: 0.3 + Math.random() * 0.8,
+        a: 0.1 + Math.random() * 0.2,
         p: Math.random() * Math.PI * 2
       });
     }
