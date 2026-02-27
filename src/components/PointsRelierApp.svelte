@@ -70,17 +70,17 @@
   const inArea = (x, y) => x >= MX && x <= 1 - MX && y >= MY && y <= 1 - MY;
   const dd = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
-  // --- Curve generation (place dots directly via smooth random walk) ---
+  // --- Curve generation with backtracking ---
   function generateCurveDots(numDots, placed) {
     const pad = 0.03;
     const x0 = MX + pad, x1 = 1 - MX - pad;
     const y0 = MY + pad, y1 = 1 - MY - pad;
-    let x = x0 + Math.random() * (x1 - x0);
-    let y = y0 + Math.random() * (y1 - y0);
-    let angle = Math.random() * Math.PI * 2;
-
     const step = dotSpacing;
-    const dots = [{ x, y }];
+    const maxTurn = Math.PI / 3;
+
+    const sx = x0 + Math.random() * (x1 - x0);
+    const sy = y0 + Math.random() * (y1 - y0);
+    const dots = [{ x: sx, y: sy }];
     placed.push(dots[0]);
 
     // Harmonics: low-freq dominant for large sweeping arcs
@@ -93,7 +93,6 @@
         p: Math.random() * Math.PI * 2
       });
     }
-    // Subtle high-freq for gentle variation
     const nHi = 1 + Math.floor(Math.random() * 2);
     for (let h = 0; h < nHi; h++) {
       harm.push({
@@ -103,53 +102,92 @@
       });
     }
 
-    for (let i = 1; i < numDots; i++) {
-      // Smooth angular change via sum of sinusoids
+    // Track angle at each placed dot for backtracking
+    const angles = [Math.random() * Math.PI * 2];
+    const maxBudget = numDots * 80;
+    let budget = 0;
+
+    while (dots.length < numDots && budget < maxBudget) {
+      budget++;
+      const idx = dots.length;
+      const prev = dots[idx - 1];
+      const baseAngle = angles[idx - 1];
+
+      // Harmonic curvature target
       let da = 0;
-      for (const h of harm) da += Math.sin(i * h.f + h.p) * h.a;
-      angle += da * 0.3;
+      for (const h of harm) da += Math.sin(idx * h.f + h.p) * h.a;
 
-      // Soft steering away from edges
-      const edge = 0.06;
-      let sx = 0, sy = 0;
-      if (x < x0 + edge) sx = (x0 + edge - x) / edge;
-      else if (x > x1 - edge) sx = -(x - (x1 - edge)) / edge;
-      if (y < y0 + edge) sy = (y0 + edge - y) / edge;
-      else if (y > y1 - edge) sy = -(y - (y1 - edge)) / edge;
-      if (sx || sy) {
-        const ta = Math.atan2(sy, sx);
-        let diff = ta - angle;
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-        while (diff < -Math.PI) diff += 2 * Math.PI;
-        angle += diff * 0.3;
-      }
+      let found = false;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        let tryAngle = baseAngle + da * 0.3;
 
-      let nx = x + Math.cos(angle) * step;
-      let ny = y + Math.sin(angle) * step;
+        // Edge steering
+        const edge = 0.06;
+        let steerX = 0, steerY = 0;
+        if (prev.x < x0 + edge) steerX = (x0 + edge - prev.x) / edge;
+        else if (prev.x > x1 - edge) steerX = -(prev.x - (x1 - edge)) / edge;
+        if (prev.y < y0 + edge) steerY = (y0 + edge - prev.y) / edge;
+        else if (prev.y > y1 - edge) steerY = -(prev.y - (y1 - edge)) / edge;
+        if (steerX || steerY) {
+          const ta = Math.atan2(steerY, steerX);
+          let diff = ta - tryAngle;
+          while (diff > Math.PI) diff -= 2 * Math.PI;
+          while (diff < -Math.PI) diff += 2 * Math.PI;
+          tryAngle += diff * 0.3;
+        }
 
-      // Repulsion from all already-placed points (except immediate predecessor)
-      const prev = dots[dots.length - 1];
-      for (let pass = 0; pass < 5; pass++) {
-        let pushed = false;
+        // Increasing random perturbation on retries
+        if (attempt > 0) {
+          tryAngle += (Math.random() - 0.5) * Math.PI * (attempt / 5);
+        }
+
+        const nx = prev.x + Math.cos(tryAngle) * step;
+        const ny = prev.y + Math.sin(tryAngle) * step;
+
+        // Bounds check
+        if (nx < x0 || nx > x1 || ny < y0 || ny > y1) continue;
+
+        // Smoothness: angle change between consecutive segments
+        if (idx >= 2) {
+          const pp = dots[idx - 2];
+          const prevDir = Math.atan2(prev.y - pp.y, prev.x - pp.x);
+          const curDir = Math.atan2(ny - prev.y, nx - prev.x);
+          let aDiff = curDir - prevDir;
+          while (aDiff > Math.PI) aDiff -= 2 * Math.PI;
+          while (aDiff < -Math.PI) aDiff += 2 * Math.PI;
+          if (Math.abs(aDiff) > maxTurn) continue;
+        }
+
+        // Collision: min distance from all other placed points
+        let collision = false;
         for (const ep of placed) {
           if (ep === prev) continue;
-          const dx = nx - ep.x, dy = ny - ep.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < dotSpacing && dist > 1e-9) {
-            nx += (dx / dist) * (dotSpacing - dist);
-            ny += (dy / dist) * (dotSpacing - dist);
-            pushed = true;
-          }
+          const d = Math.sqrt((nx - ep.x) ** 2 + (ny - ep.y) ** 2);
+          if (d < step * 0.7) { collision = true; break; }
         }
-        if (!pushed) break;
+        if (collision) continue;
+
+        // Valid point
+        const pt = { x: nx, y: ny };
+        dots.push(pt);
+        placed.push(pt);
+        angles.push(tryAngle);
+        found = true;
+        break;
       }
 
-      nx = Math.max(x0, Math.min(x1, nx));
-      ny = Math.max(y0, Math.min(y1, ny));
-      const pt = { x: nx, y: ny };
-      dots.push(pt);
-      placed.push(pt);
-      x = nx; y = ny;
+      if (!found) {
+        // Backtrack: remove last point, perturb angle, retry
+        if (dots.length > 1) {
+          const removed = dots.pop();
+          const rmIdx = placed.indexOf(removed);
+          if (rmIdx !== -1) placed.splice(rmIdx, 1);
+          angles.pop();
+          angles[angles.length - 1] += (Math.random() - 0.5) * Math.PI * 0.8;
+        } else {
+          break;
+        }
+      }
     }
 
     return dots;
