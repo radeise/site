@@ -27,6 +27,7 @@
   let dotSize = $state(6);
   let fontSize = $state(12);
   let isGenerated = $state(false);
+  let dotSpacing = $state(0.06);
 
   // Stats
   let statStrokes = $derived(rawStrokes.length);
@@ -78,7 +79,7 @@
     let y = y0 + Math.random() * (y1 - y0);
     let angle = Math.random() * Math.PI * 2;
 
-    const step = Math.max(0.03, Math.min(0.12, 0.8 / numDots));
+    const step = dotSpacing;
     const dots = [{ x, y }];
 
     // Random harmonics for smooth curvature variation
@@ -708,6 +709,14 @@
           <label>
             Nombre : {numCurves}
             <input type="range" bind:value={numCurves} min="2" max="8" step="1" />
+          </label>
+        </div>
+
+        <div class="opt-group">
+          <h3>Espacement</h3>
+          <label>
+            Distance : {Math.round(dotSpacing * 100)}
+            <input type="range" bind:value={dotSpacing} min="0.02" max="0.15" step="0.005" />
           </label>
         </div>
 
