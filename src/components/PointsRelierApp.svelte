@@ -68,42 +68,58 @@
   const inArea = (x, y) => x >= MX && x <= 1 - MX && y >= MY && y <= 1 - MY;
   const dd = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
-  // --- Catmull-Rom spline ---
-  function catmullRom(p0, p1, p2, p3, t) {
-    const t2 = t * t, t3 = t2 * t;
-    return {
-      x: 0.5 * ((2*p1.x) + (-p0.x + p2.x)*t + (2*p0.x - 5*p1.x + 4*p2.x - p3.x)*t2 + (-p0.x + 3*p1.x - 3*p2.x + p3.x)*t3),
-      y: 0.5 * ((2*p1.y) + (-p0.y + p2.y)*t + (2*p0.y - 5*p1.y + 4*p2.y - p3.y)*t2 + (-p0.y + 3*p1.y - 3*p2.y + p3.y)*t3)
-    };
-  }
-
+  // --- Curve generation (smooth random walk with harmonics) ---
   function generateCurve() {
     const pad = 0.03;
     const x0 = MX + pad, x1 = 1 - MX - pad;
     const y0 = MY + pad, y1 = 1 - MY - pad;
-    const nWay = 5 + Math.floor(Math.random() * 4);
-    const wps = [];
-    for (let i = 0; i < nWay; i++) {
-      wps.push({
-        x: x0 + Math.random() * (x1 - x0),
-        y: y0 + Math.random() * (y1 - y0)
+    let x = x0 + Math.random() * (x1 - x0);
+    let y = y0 + Math.random() * (y1 - y0);
+    let angle = Math.random() * Math.PI * 2;
+
+    const step = 0.005;
+    const nSteps = 300;
+    const pts = [{ x, y }];
+
+    // Random harmonics for smooth curvature variation
+    const nh = 3 + Math.floor(Math.random() * 3);
+    const harm = [];
+    for (let h = 0; h < nh; h++) {
+      harm.push({
+        f: 0.01 + Math.random() * 0.04,
+        a: 0.2 + Math.random() * 0.5,
+        p: Math.random() * Math.PI * 2
       });
     }
-    const pts = [];
-    const sps = 15;
-    for (let i = 0; i < wps.length - 1; i++) {
-      const p0 = wps[Math.max(0, i - 1)];
-      const p1 = wps[i];
-      const p2 = wps[i + 1];
-      const p3 = wps[Math.min(wps.length - 1, i + 2)];
-      for (let t = 0; t < sps; t++) {
-        const pt = catmullRom(p0, p1, p2, p3, t / sps);
-        pt.x = Math.max(x0, Math.min(x1, pt.x));
-        pt.y = Math.max(y0, Math.min(y1, pt.y));
-        pts.push(pt);
+
+    for (let i = 1; i <= nSteps; i++) {
+      // Smooth angular change via sum of sinusoids
+      let da = 0;
+      for (const h of harm) da += Math.sin(i * h.f + h.p) * h.a;
+      angle += da * 0.12;
+
+      // Soft steering away from edges
+      const edge = 0.06;
+      let sx = 0, sy = 0;
+      if (x < x0 + edge) sx = (x0 + edge - x) / edge;
+      else if (x > x1 - edge) sx = -(x - (x1 - edge)) / edge;
+      if (y < y0 + edge) sy = (y0 + edge - y) / edge;
+      else if (y > y1 - edge) sy = -(y - (y1 - edge)) / edge;
+      if (sx || sy) {
+        const ta = Math.atan2(sy, sx);
+        let diff = ta - angle;
+        while (diff > Math.PI) diff -= 2 * Math.PI;
+        while (diff < -Math.PI) diff += 2 * Math.PI;
+        angle += diff * 0.15;
       }
+
+      x += Math.cos(angle) * step;
+      y += Math.sin(angle) * step;
+      x = Math.max(x0, Math.min(x1, x));
+      y = Math.max(y0, Math.min(y1, y));
+      pts.push({ x, y });
     }
-    pts.push({ x: wps[wps.length - 1].x, y: wps[wps.length - 1].y });
+
     return pts;
   }
 
