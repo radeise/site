@@ -190,16 +190,35 @@
     render();
   }
 
-  // --- Resample ---
+  // --- Curvature-adaptive resample ---
+  function weightedArcLen(s) {
+    const w = [0];
+    for (let i = 1; i < s.length; i++) {
+      const seg = dd(s[i], s[i - 1]);
+      let curv = 0;
+      if (i >= 2) {
+        const ax = s[i-1].x - s[i-2].x, ay = s[i-1].y - s[i-2].y;
+        const bx = s[i].x - s[i-1].x, by = s[i].y - s[i-1].y;
+        const la = Math.sqrt(ax*ax + ay*ay), lb = Math.sqrt(bx*bx + by*by);
+        if (la > 1e-9 && lb > 1e-9) {
+          const cosA = Math.max(-1, Math.min(1, (ax*bx + ay*by) / (la * lb)));
+          curv = Math.acos(cosA);
+        }
+      }
+      w.push(w[i - 1] + seg * (1 + 3 * curv));
+    }
+    return w;
+  }
+
   function resample(n) {
     if (!rawStrokes.length) return [];
     const sL = [];
     let tot = 0;
     for (const s of rawStrokes) {
-      let l = 0;
-      for (let i = 1; i < s.length; i++) l += dd(s[i], s[i - 1]);
-      sL.push(l);
-      tot += l;
+      const w = weightedArcLen(s);
+      const wt = w[w.length - 1];
+      sL.push(wt);
+      tot += wt;
     }
     if (!tot) return [];
     const m = 2, rem = Math.max(0, n - rawStrokes.length * m);
@@ -219,14 +238,13 @@
     for (let si = 0; si < rawStrokes.length; si++) {
       const s = rawStrokes[si], np = pp[si];
       if (s.length <= 1 || np <= 1) { res.push([{ x: s[0].x, y: s[0].y }]); continue; }
-      const ar = [0];
-      for (let i = 1; i < s.length; i++) ar.push(ar[i - 1] + dd(s[i], s[i - 1]));
-      const sl = ar[ar.length - 1], pts = [];
+      const w = weightedArcLen(s);
+      const wTotal = w[w.length - 1], pts = [];
       for (let i = 0; i < np; i++) {
-        const t = (i / (np - 1)) * sl;
+        const t = (i / (np - 1)) * wTotal;
         let g = 0;
-        while (g < ar.length - 2 && ar[g + 1] < t) g++;
-        const gl = ar[g + 1] - ar[g], f = gl > 0 ? (t - ar[g]) / gl : 0;
+        while (g < w.length - 2 && w[g + 1] < t) g++;
+        const gl = w[g + 1] - w[g], f = gl > 0 ? (t - w[g]) / gl : 0;
         pts.push({ x: s[g].x + f * (s[g + 1].x - s[g].x), y: s[g].y + f * (s[g + 1].y - s[g].y) });
       }
       res.push(pts);
