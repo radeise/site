@@ -312,8 +312,17 @@
     for (let s = 0; s < src.length; s++) {
       const st = src[s];
       pts.push({ x: st[0].x, y: st[0].y, type: 'star-start', pi: s });
-      for (let i = 1; i < st.length; i++) {
+      for (let i = 1; i < st.length - 1; i++) {
         pts.push({ x: st[i].x, y: st[i].y, type: 'dot', pi: -1 });
+      }
+      // Last point: star with next curve's color to show the link
+      if (st.length > 1) {
+        const last = st[st.length - 1];
+        if (s < src.length - 1) {
+          pts.push({ x: last.x, y: last.y, type: 'star-end', pi: s + 1 });
+        } else {
+          pts.push({ x: last.x, y: last.y, type: 'dot', pi: -1 });
+        }
       }
     }
     return pts;
