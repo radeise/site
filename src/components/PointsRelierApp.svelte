@@ -124,6 +124,44 @@
     return dots;
   }
 
+  // Ensure no two non-adjacent points are closer than dotSpacing
+  function enforceMinDistance() {
+    const minDist = dotSpacing;
+    const pad = 0.03;
+    const x0 = MX + pad, x1 = 1 - MX - pad;
+    const y0 = MY + pad, y1 = 1 - MY - pad;
+
+    const all = [];
+    for (let s = 0; s < rawStrokes.length; s++) {
+      for (let i = 0; i < rawStrokes[s].length; i++) {
+        all.push({ s, i });
+      }
+    }
+
+    for (let pass = 0; pass < 10; pass++) {
+      let moved = false;
+      for (let a = 0; a < all.length; a++) {
+        for (let b = a + 1; b < all.length; b++) {
+          if (all[a].s === all[b].s && Math.abs(all[a].i - all[b].i) <= 1) continue;
+          const pa = rawStrokes[all[a].s][all[a].i];
+          const pb = rawStrokes[all[b].s][all[b].i];
+          const dx = pb.x - pa.x, dy = pb.y - pa.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < minDist && dist > 1e-9) {
+            const overlap = (minDist - dist) / 2;
+            const nx = dx / dist, ny = dy / dist;
+            pa.x = Math.max(x0, Math.min(x1, pa.x - nx * overlap));
+            pa.y = Math.max(y0, Math.min(y1, pa.y - ny * overlap));
+            pb.x = Math.max(x0, Math.min(x1, pb.x + nx * overlap));
+            pb.y = Math.max(y0, Math.min(y1, pb.y + ny * overlap));
+            moved = true;
+          }
+        }
+      }
+      if (!moved) break;
+    }
+  }
+
   function generate() {
     rawStrokes = [];
     decorStrokes = [];
@@ -133,6 +171,7 @@
       const n = base + (i < rem ? 1 : 0);
       rawStrokes.push(generateCurveDots(Math.max(2, n)));
     }
+    enforceMinDistance();
     isGenerated = true;
     showPoints = true;
     render();
