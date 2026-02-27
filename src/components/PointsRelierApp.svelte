@@ -71,7 +71,7 @@
   const dd = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
   // --- Curve generation (place dots directly via smooth random walk) ---
-  function generateCurveDots(numDots) {
+  function generateCurveDots(numDots, placed) {
     const pad = 0.03;
     const x0 = MX + pad, x1 = 1 - MX - pad;
     const y0 = MY + pad, y1 = 1 - MY - pad;
@@ -81,6 +81,7 @@
 
     const step = dotSpacing;
     const dots = [{ x, y }];
+    placed.push(dots[0]);
 
     // Random harmonics for smooth curvature variation
     const nh = 3 + Math.floor(Math.random() * 3);
@@ -114,64 +115,47 @@
         angle += diff * 0.3;
       }
 
-      x += Math.cos(angle) * step;
-      y += Math.sin(angle) * step;
-      x = Math.max(x0, Math.min(x1, x));
-      y = Math.max(y0, Math.min(y1, y));
-      dots.push({ x, y });
+      let nx = x + Math.cos(angle) * step;
+      let ny = y + Math.sin(angle) * step;
+
+      // Repulsion from all already-placed points (except immediate predecessor)
+      const prev = dots[dots.length - 1];
+      for (let pass = 0; pass < 5; pass++) {
+        let pushed = false;
+        for (const ep of placed) {
+          if (ep === prev) continue;
+          const dx = nx - ep.x, dy = ny - ep.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < dotSpacing && dist > 1e-9) {
+            nx += (dx / dist) * (dotSpacing - dist);
+            ny += (dy / dist) * (dotSpacing - dist);
+            pushed = true;
+          }
+        }
+        if (!pushed) break;
+      }
+
+      nx = Math.max(x0, Math.min(x1, nx));
+      ny = Math.max(y0, Math.min(y1, ny));
+      const pt = { x: nx, y: ny };
+      dots.push(pt);
+      placed.push(pt);
+      x = nx; y = ny;
     }
 
     return dots;
   }
 
-  // Ensure no two non-adjacent points are closer than dotSpacing
-  function enforceMinDistance() {
-    const minDist = dotSpacing;
-    const pad = 0.03;
-    const x0 = MX + pad, x1 = 1 - MX - pad;
-    const y0 = MY + pad, y1 = 1 - MY - pad;
-
-    const all = [];
-    for (let s = 0; s < rawStrokes.length; s++) {
-      for (let i = 0; i < rawStrokes[s].length; i++) {
-        all.push({ s, i });
-      }
-    }
-
-    for (let pass = 0; pass < 10; pass++) {
-      let moved = false;
-      for (let a = 0; a < all.length; a++) {
-        for (let b = a + 1; b < all.length; b++) {
-          if (all[a].s === all[b].s && Math.abs(all[a].i - all[b].i) <= 1) continue;
-          const pa = rawStrokes[all[a].s][all[a].i];
-          const pb = rawStrokes[all[b].s][all[b].i];
-          const dx = pb.x - pa.x, dy = pb.y - pa.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < minDist && dist > 1e-9) {
-            const overlap = (minDist - dist) / 2;
-            const nx = dx / dist, ny = dy / dist;
-            pa.x = Math.max(x0, Math.min(x1, pa.x - nx * overlap));
-            pa.y = Math.max(y0, Math.min(y1, pa.y - ny * overlap));
-            pb.x = Math.max(x0, Math.min(x1, pb.x + nx * overlap));
-            pb.y = Math.max(y0, Math.min(y1, pb.y + ny * overlap));
-            moved = true;
-          }
-        }
-      }
-      if (!moved) break;
-    }
-  }
-
   function generate() {
     rawStrokes = [];
     decorStrokes = [];
+    const allPts = [];
     const base = Math.floor(numPoints / numCurves);
     let rem = numPoints - base * numCurves;
     for (let i = 0; i < numCurves; i++) {
       const n = base + (i < rem ? 1 : 0);
-      rawStrokes.push(generateCurveDots(Math.max(2, n)));
+      rawStrokes.push(generateCurveDots(Math.max(2, n), allPts));
     }
-    enforceMinDistance();
     isGenerated = true;
     showPoints = true;
     render();
