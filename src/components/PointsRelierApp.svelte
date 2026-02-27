@@ -20,7 +20,8 @@
   // Settings
   let decorWidth = $state(3);
   let showPoints = $state(true);
-  let numPoints = $state(40);
+  let numPoints = $state(50);
+  let numCurves = $state(5);
   let startNum = $state(1);
   let stepNum = $state(1);
   let dotSize = $state(6);
@@ -66,6 +67,55 @@
   // --- Helpers ---
   const inArea = (x, y) => x >= MX && x <= 1 - MX && y >= MY && y <= 1 - MY;
   const dd = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+
+  // --- Catmull-Rom spline ---
+  function catmullRom(p0, p1, p2, p3, t) {
+    const t2 = t * t, t3 = t2 * t;
+    return {
+      x: 0.5 * ((2*p1.x) + (-p0.x + p2.x)*t + (2*p0.x - 5*p1.x + 4*p2.x - p3.x)*t2 + (-p0.x + 3*p1.x - 3*p2.x + p3.x)*t3),
+      y: 0.5 * ((2*p1.y) + (-p0.y + p2.y)*t + (2*p0.y - 5*p1.y + 4*p2.y - p3.y)*t2 + (-p0.y + 3*p1.y - 3*p2.y + p3.y)*t3)
+    };
+  }
+
+  function generateCurve() {
+    const pad = 0.03;
+    const x0 = MX + pad, x1 = 1 - MX - pad;
+    const y0 = MY + pad, y1 = 1 - MY - pad;
+    const nWay = 5 + Math.floor(Math.random() * 4);
+    const wps = [];
+    for (let i = 0; i < nWay; i++) {
+      wps.push({
+        x: x0 + Math.random() * (x1 - x0),
+        y: y0 + Math.random() * (y1 - y0)
+      });
+    }
+    const pts = [];
+    const sps = 15;
+    for (let i = 0; i < wps.length - 1; i++) {
+      const p0 = wps[Math.max(0, i - 1)];
+      const p1 = wps[i];
+      const p2 = wps[i + 1];
+      const p3 = wps[Math.min(wps.length - 1, i + 2)];
+      for (let t = 0; t < sps; t++) {
+        const pt = catmullRom(p0, p1, p2, p3, t / sps);
+        pt.x = Math.max(x0, Math.min(x1, pt.x));
+        pt.y = Math.max(y0, Math.min(y1, pt.y));
+        pts.push(pt);
+      }
+    }
+    pts.push({ x: wps[wps.length - 1].x, y: wps[wps.length - 1].y });
+    return pts;
+  }
+
+  function generate() {
+    rawStrokes = [];
+    decorStrokes = [];
+    for (let i = 0; i < numCurves; i++) {
+      rawStrokes.push(generateCurve());
+    }
+    showPoints = true;
+    render();
+  }
 
   function clientToNorm(cx, cy) {
     const r = canvasEl.getBoundingClientRect();
@@ -186,17 +236,11 @@
 
   function buildPoints(n) {
     const sam = resample(n), pts = [];
-    let pair = 0;
     for (let s = 0; s < sam.length; s++) {
       const st = sam[s];
-      if (s > 0 && pts.length > 0) {
-        pts[pts.length - 1].type = 'star-end';
-        pts[pts.length - 1].pi = pair;
-        pts.push({ x: st[0].x, y: st[0].y, type: 'star-start', pi: pair });
-        pair++;
-        for (let i = 1; i < st.length; i++) pts.push({ x: st[i].x, y: st[i].y, type: 'dot', pi: -1 });
-      } else {
-        for (let i = 0; i < st.length; i++) pts.push({ x: st[i].x, y: st[i].y, type: 'dot', pi: -1 });
+      pts.push({ x: st[0].x, y: st[0].y, type: 'star-start', pi: s });
+      for (let i = 1; i < st.length; i++) {
+        pts.push({ x: st[i].x, y: st[i].y, type: 'dot', pi: -1 });
       }
     }
     return pts;
@@ -560,6 +604,7 @@
       <button class="tool-btn" class:active={tool === 'trace'} onclick={() => setTool('trace')}>Tracé</button>
       <button class="tool-btn" class:active={tool === 'decor'} onclick={() => setTool('decor')}>Décor</button>
     </div>
+    <button class="btn btn-primary" onclick={generate}>Générer</button>
     <button class="btn btn-outline" onclick={undo}>Annuler</button>
     <button class="btn btn-outline btn-danger" onclick={clearAll}>Effacer</button>
     <button class="btn btn-primary" onclick={exportPDF}>Exporter PDF</button>
@@ -599,6 +644,14 @@
           <label>
             Nombre : {numPoints}
             <input type="range" bind:value={numPoints} min="5" max="150" step="1" oninput={render} />
+          </label>
+        </div>
+
+        <div class="opt-group">
+          <h3>Courbes</h3>
+          <label>
+            Nombre : {numCurves}
+            <input type="range" bind:value={numCurves} min="2" max="8" step="1" />
           </label>
         </div>
 
