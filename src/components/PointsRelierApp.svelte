@@ -26,6 +26,7 @@
   let stepNum = $state(1);
   let dotSize = $state(6);
   let fontSize = $state(12);
+  let isGenerated = $state(false);
 
   // Stats
   let statStrokes = $derived(rawStrokes.length);
@@ -68,8 +69,8 @@
   const inArea = (x, y) => x >= MX && x <= 1 - MX && y >= MY && y <= 1 - MY;
   const dd = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
-  // --- Curve generation (smooth random walk with harmonics) ---
-  function generateCurve() {
+  // --- Curve generation (place dots directly via smooth random walk) ---
+  function generateCurveDots(numDots) {
     const pad = 0.03;
     const x0 = MX + pad, x1 = 1 - MX - pad;
     const y0 = MY + pad, y1 = 1 - MY - pad;
@@ -77,26 +78,25 @@
     let y = y0 + Math.random() * (y1 - y0);
     let angle = Math.random() * Math.PI * 2;
 
-    const step = 0.005;
-    const nSteps = 300;
-    const pts = [{ x, y }];
+    const step = Math.max(0.03, Math.min(0.12, 0.8 / numDots));
+    const dots = [{ x, y }];
 
     // Random harmonics for smooth curvature variation
     const nh = 3 + Math.floor(Math.random() * 3);
     const harm = [];
     for (let h = 0; h < nh; h++) {
       harm.push({
-        f: 0.01 + Math.random() * 0.04,
+        f: 0.2 + Math.random() * 1.2,
         a: 0.2 + Math.random() * 0.5,
         p: Math.random() * Math.PI * 2
       });
     }
 
-    for (let i = 1; i <= nSteps; i++) {
+    for (let i = 1; i < numDots; i++) {
       // Smooth angular change via sum of sinusoids
       let da = 0;
       for (const h of harm) da += Math.sin(i * h.f + h.p) * h.a;
-      angle += da * 0.12;
+      angle += da * 0.3;
 
       // Soft steering away from edges
       const edge = 0.06;
@@ -110,25 +110,29 @@
         let diff = ta - angle;
         while (diff > Math.PI) diff -= 2 * Math.PI;
         while (diff < -Math.PI) diff += 2 * Math.PI;
-        angle += diff * 0.15;
+        angle += diff * 0.3;
       }
 
       x += Math.cos(angle) * step;
       y += Math.sin(angle) * step;
       x = Math.max(x0, Math.min(x1, x));
       y = Math.max(y0, Math.min(y1, y));
-      pts.push({ x, y });
+      dots.push({ x, y });
     }
 
-    return pts;
+    return dots;
   }
 
   function generate() {
     rawStrokes = [];
     decorStrokes = [];
+    const base = Math.floor(numPoints / numCurves);
+    let rem = numPoints - base * numCurves;
     for (let i = 0; i < numCurves; i++) {
-      rawStrokes.push(generateCurve());
+      const n = base + (i < rem ? 1 : 0);
+      rawStrokes.push(generateCurveDots(Math.max(2, n)));
     }
+    isGenerated = true;
     showPoints = true;
     render();
   }
@@ -166,6 +170,7 @@
   // --- Drawing ---
   function startDraw(p) {
     if (!inArea(p.x, p.y)) return;
+    isGenerated = false;
     isDrawing = true;
     didMove = false;
     currentStroke = [{ x: p.x, y: p.y }];
@@ -269,9 +274,10 @@
   }
 
   function buildPoints(n) {
-    const sam = resample(n), pts = [];
-    for (let s = 0; s < sam.length; s++) {
-      const st = sam[s];
+    const src = isGenerated ? rawStrokes : resample(n);
+    const pts = [];
+    for (let s = 0; s < src.length; s++) {
+      const st = src[s];
       pts.push({ x: st[0].x, y: st[0].y, type: 'star-start', pi: s });
       for (let i = 1; i < st.length; i++) {
         pts.push({ x: st[i].x, y: st[i].y, type: 'dot', pi: -1 });
@@ -411,7 +417,22 @@
     ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(pts[0].x * CW, pts[0].y * CH);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * CW, pts[i].y * CH);
+    if (pts.length === 2) {
+      ctx.lineTo(pts[1].x * CW, pts[1].y * CH);
+    } else {
+      // Catmull-Rom to cubic Bezier for smooth curves
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[Math.max(0, i - 1)];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[Math.min(pts.length - 1, i + 2)];
+        const cp1x = (p1.x + (p2.x - p0.x) / 6) * CW;
+        const cp1y = (p1.y + (p2.y - p0.y) / 6) * CH;
+        const cp2x = (p2.x - (p3.x - p1.x) / 6) * CW;
+        const cp2y = (p2.y - (p3.y - p1.y) / 6) * CH;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x * CW, p2.y * CH);
+      }
+    }
     ctx.stroke();
   }
 
@@ -459,6 +480,7 @@
     rawStrokes = [];
     decorStrokes = [];
     currentStroke = null;
+    isGenerated = false;
     render();
   }
 
